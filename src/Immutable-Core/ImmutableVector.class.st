@@ -142,6 +142,13 @@ ImmutableVector >> do: aBlock [
     0 to: size - 1 do: [:i | aBlock value: (self at: i)]
 ]
 
+{ #category : 'accessing' }
+ImmutableVector >> drop: n [
+    n <= 0 ifTrue: [^ self].
+    n >= size ifTrue: [^ self class empty].
+    ^ ImmutableSubVector on: self from: n size: size - n
+]
+
 { #category : 'enumerating' }
 ImmutableVector >> empty [
     EmptyVector ifNil: [EmptyVector := self basicNew initializeEmpty].
@@ -328,6 +335,13 @@ ImmutableVector >> species [
 { #category : 'enumerating' }
 ImmutableVector >> tailOffset [
     ^ size - tail size
+]
+
+{ #category : 'accessing' }
+ImmutableVector >> take: n [
+    n <= 0 ifTrue: [^ self class empty].
+    n >= size ifTrue: [^ self].
+    ^ ImmutableSubVector on: self from: 0 size: n
 ]
 
 { #category : 'enumerating' }
