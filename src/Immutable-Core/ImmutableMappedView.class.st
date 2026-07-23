@@ -1,3 +1,13 @@
+"
+I am a lazy mapped view over a sequence, created by collect:.
+
+I hold a source sequence and a transform block. Each access applies the transform
+to the underlying element. Take and drop delegate to the source, remaining lazy.
+
+Realization happens via add:, cons:, or asImmutableVector.
+
+Inspired by Clojure's lazy sequence mapping (map).
+"
 Class {
 	#name : 'ImmutableMappedView',
 	#superclass : 'ImmutableObject',

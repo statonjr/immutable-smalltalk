@@ -1,3 +1,14 @@
+"
+I am a lazy filtered view over a sequence, created by select: and reject:.
+
+I hold a source sequence and a predicate block. Iteration applies the predicate,
+skipping elements that don't match. First access walks the source until a match
+is found. Take and drop operations stay lazy.
+
+Realization happens via add:, cons:, or asImmutableVector.
+
+Inspired by Clojure's lazy sequence filtering (filter).
+"
 Class {
 	#name : 'ImmutableFilteredView',
 	#superclass : 'ImmutableObject',
