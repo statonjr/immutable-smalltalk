@@ -30,11 +30,38 @@ ImmutableSortedMap class >> empty [
 ]
 
 { #category : 'instance creation' }
+ImmutableSortedMap class >> fromArray: anArray [
+    | map keys sortedKeys |
+    map := ImmutableMap empty.
+    "Build map from original array order — last wins"
+    anArray do: [:assoc | map := map put: assoc key value: assoc value].
+    "Build sorted keys from map keys"
+    sortedKeys := map keys sort.
+    keys := ImmutableList empty.
+    sortedKeys reverseDo: [:key | keys := keys cons: key].
+    ^ self basicNew initializeWithMap: map sortedKeys: keys
+]
+
+{ #category : 'instance creation' }
 ImmutableSortedMap class >> fromAssociations: aCollection [
     | map |
     map := self empty.
     aCollection do: [:assoc | map := map put: assoc key value: assoc value].
     ^ map
+]
+
+{ #category : 'instance creation' }
+ImmutableSortedMap class >> fromSortedAssociations: sortedAssocs [
+    | map keys lastKey |
+    map := ImmutableMap empty.
+    sortedAssocs do: [:assoc | map := map put: assoc key value: assoc value].
+    keys := ImmutableList empty.
+    lastKey := nil.
+    sortedAssocs reverseDo: [:assoc |
+        assoc key = lastKey ifFalse: [
+            keys := keys cons: assoc key.
+            lastKey := assoc key]].
+    ^ self basicNew initializeWithMap: map sortedKeys: keys
 ]
 
 { #category : 'sorting' }

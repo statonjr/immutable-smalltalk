@@ -43,7 +43,9 @@ ImmutableBenchmarks class >> runAll [
 	self runLazyViewBenchmarks.
 	self runListBenchmarks.
 	self runMapBenchmarks.
+	self runQueueBenchmarks.
 	self runSetBenchmarks.
+	self runSortedBenchmarks.
 	self runVectorBenchmarks.
 ]
 
@@ -196,6 +198,47 @@ ImmutableBenchmarks class >> runMapBenchmarks [
         1 to: 1000 do: [:i | d at: i put: i]]
 ]
 
+{ #category : 'as yet unclassified' }
+ImmutableBenchmarks class >> runQueueBenchmarks [
+    | queue |
+    
+    Transcript show: '=== Queue Benchmarks ==='; cr.
+    
+    queue := ImmutableQueue empty.
+    1 to: 1000 do: [:i | queue := queue enqueue: i].
+    
+    self run: '  Queue enqueue (1000)             ' iterations: 100 block: [
+        | q |
+        q := ImmutableQueue empty.
+        1 to: 100 do: [:i | q := q enqueue: i]].
+    
+    self run: '  Queue dequeue all (1000)         ' iterations: 10 block: [
+        | q result |
+        q := queue.
+        1 to: 1000 do: [:i |
+            result := q dequeue.
+            q := result second]].
+    
+    self run: '  Queue peek                       ' iterations: 100000 block: [
+        queue peek].
+    
+    self run: '  Queue enqueue/dequeue mix         ' iterations: 100 block: [
+        | q result |
+        q := ImmutableQueue empty.
+        1 to: 50 do: [:i | q := q enqueue: i].
+        1 to: 25 do: [:i |
+            result := q dequeue.
+            q := result second].
+        1 to: 25 do: [:i | q := q enqueue: i]].
+    
+    "Structural sharing: branch from same queue"
+    self run: '  Queue 10 branches (1000)         ' iterations: 100 block: [
+        | branches |
+        branches := (1 to: 10) collect: [:i | queue enqueue: i]].
+    
+    Transcript cr
+]
+
 { #category : 'running' }
 ImmutableBenchmarks class >> runSetBenchmarks [
     | immSet smallSet items |
@@ -244,6 +287,72 @@ ImmutableBenchmarks class >> runSetBenchmarks [
         | s2 |
         s2 := smallSet copy.
         s2 add: 999]
+]
+
+{ #category : 'as yet unclassified' }
+ImmutableBenchmarks class >> runSortedBenchmarks [
+    | immSortedMap immSortedSet dict set items |
+    
+    Transcript show: '=== Sorted Map Benchmarks ==='; cr.
+    
+    "SortedMap vs Dictionary"
+    immSortedMap := ImmutableSortedMap empty.
+    1 to: 500 do: [:i | immSortedMap := immSortedMap put: i value: i * 2].
+    dict := Dictionary new.
+    1 to: 500 do: [:i | dict at: i put: i * 2].
+    items := (1 to: 100) asArray.
+    
+    self compare: '  SortedMap at: (500)           ' block: [
+        items do: [:i | immSortedMap at: i]]
+        with: '  Dictionary at: (500)           ' block: [
+        items do: [:i | dict at: i]]
+        iterations: 1000.
+    
+    self run: '  SortedMap building (500)         ' iterations: 10 block: [
+        | m |
+        m := ImmutableSortedMap empty.
+        1 to: 500 do: [:i | m := m put: i value: i]].
+    
+    self run: '  SortedMap keys (ordered)          ' iterations: 100 block: [
+        immSortedMap keys].
+    
+    self run: '  SortedMap keysAndValuesDo:        ' iterations: 100 block: [
+        immSortedMap keysAndValuesDo: [:k :v | k + v]].
+    
+    Transcript cr.
+    
+    "SortedSet vs Set"
+    Transcript show: '=== Sorted Set Benchmarks ==='; cr.
+    
+    immSortedSet := ImmutableSortedSet fromArray: (1 to: 500) asArray.
+    set := (1 to: 500) asSet.
+    
+    self compare: '  SortedSet includes: (500)      ' block: [
+        items do: [:i | immSortedSet includes: i]]
+        with: '  Set includes: (500)            ' block: [
+        items do: [:i | set includes: i]]
+        iterations: 1000.
+    
+    self run: '  SortedSet building (500)        ' iterations: 10 block: [
+        | s |
+        s := ImmutableSortedSet empty.
+        1 to: 500 do: [:i | s := s add: i]].
+    
+    self run: '  SortedSet first/last             ' iterations: 10000 block: [
+        immSortedSet first.
+        immSortedSet last].
+    
+    self run: '  SortedSet asArray (ordered)      ' iterations: 100 block: [
+        immSortedSet asArray].
+
+	"Add: optimized building vs naive"
+    self run: '  SortedMap fromArray: (500)       ' iterations: 100 block: [
+        ImmutableSortedMap fromArray: ((1 to: 500) collect: [:i | i -> i])].
+    
+    self run: '  SortedSet fromArray: (500)       ' iterations: 100 block: [
+        ImmutableSortedSet fromArray: (1 to: 500) asArray].
+    
+    Transcript cr.
 ]
 
 { #category : 'running' }

@@ -75,6 +75,21 @@ ImmutableSortedSetTest >> testFromArray [
 ]
 
 { #category : 'tests' }
+ImmutableSortedSetTest >> testFromArrayEmpty [
+    | set |
+    set := ImmutableSortedSet fromArray: #().
+    self assert: set isEmpty
+]
+
+{ #category : 'tests' }
+ImmutableSortedSetTest >> testFromArraySingle [
+    | set |
+    set := ImmutableSortedSet fromArray: #(42).
+    self assert: set size equals: 1.
+    self assert: (set includes: 42).
+]
+
+{ #category : 'tests' }
 ImmutableSortedSetTest >> testImmutability [
     | set |
     set := ImmutableSortedSet fromArray: #(1 2 3).

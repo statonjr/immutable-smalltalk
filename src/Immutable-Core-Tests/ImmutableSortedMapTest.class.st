@@ -54,6 +54,30 @@ ImmutableSortedMapTest >> testFirstAndLast [
 ]
 
 { #category : 'tests' }
+ImmutableSortedMapTest >> testFromArray [
+    | map |
+    map := ImmutableSortedMap fromArray: {#c -> 3. #a -> 1. #b -> 2. #a -> 99}.
+    self assert: map size equals: 3.
+    self assert: map keys equals: #(#a #b #c).
+    self assert: (map at: #a) equals: 99  
+]
+
+{ #category : 'tests' }
+ImmutableSortedMapTest >> testFromArrayEmpty [
+    | map |
+    map := ImmutableSortedMap fromArray: #().
+    self assert: map isEmpty
+]
+
+{ #category : 'tests' }
+ImmutableSortedMapTest >> testFromArraySingle [
+    | map |
+    map := ImmutableSortedMap fromArray: {#x -> 42}.
+    self assert: map size equals: 1.
+    self assert: (map at: #x) equals: 42
+]
+
+{ #category : 'tests' }
 ImmutableSortedMapTest >> testImmutability [
     | map |
     map := ImmutableSortedMap empty put: #name value: 'Pharo'.

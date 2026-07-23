@@ -29,10 +29,17 @@ ImmutableSortedSet class >> empty [
 
 { #category : 'instance creation' }
 ImmutableSortedSet class >> fromArray: anArray [
-    | set |
-    set := self empty.
-    anArray do: [:each | set := set add: each].
-    ^ set
+    | sorted |
+    sorted := anArray asArray copy sort.
+    ^ self fromSortedArray: sorted
+]
+
+{ #category : 'instance creation' }
+ImmutableSortedSet class >> fromSortedArray: sortedArray [
+    | sortedMap |
+    sortedMap := ImmutableSortedMap fromSortedAssociations: 
+        (sortedArray collect: [:each | each -> true]).
+    ^ self basicNew initializeWithSortedMap: sortedMap
 ]
 
 { #category : 'adding' }
