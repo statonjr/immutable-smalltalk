@@ -195,11 +195,16 @@ Mutable collections avoid tree traversal and node allocation overhead.
 
 | Benchmark | Immutable | Built-in | Ratio |
 |-----------|-----------|----------|-------|
-| Map building (1000) | 2,963/s | 5,970/s | 0.50x |
-| Vector building (1000) | 3,838/s | 140,845/s | 0.03x |
-| List cons: 10 | 6,510,417/s | 4,854,368/s | 1.34x |
+| Map building (1000) | 3,076/s | 8,143/s | 0.38x |
+| Vector building (1000) | 6,181/s | 136,799/s | 0.05x |
+| Vector at: (100k) | 59,542/s | 209,030/s | 0.28x |
+| Set building (500) | 4,990/s | 19,298/s | 0.26x |
+| SortedMap building (500) | 111/s | - | - |
+| SortedSet building (500) | 111/s | - | - |
 
-List `cons:` is _faster_ than `OrderedCollection addFirst:`. `prepend` is the natural immutable operation.
+Note: Sorted collection building is slow (O(n²) incremental insert). Use `fromArray:` for 28-37x faster bulk construction.
+
+List `cons:` is faster than `OrderedCollection addFirst:`. `prepend` is the natural immutable operation (6.5M/s vs 5.6M/s).
 
 ## Credits
 
