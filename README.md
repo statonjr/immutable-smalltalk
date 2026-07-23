@@ -27,6 +27,9 @@ Metacello new
 | `ImmutableVector` | 32-way branching | O(log₃₂ n) at, O(1) amortized add |
 | `ImmutableMap` | HAMT | O(log₃₂ n) put/at/remove |
 | `ImmutableSet` | HAMT-backed | O(log₃₂ n) add/remove/includes |
+| `ImmutableSortedMap` | HAMT + sorted keys | O(log₃₂ n) lookup, ordered traversal |
+| `ImmutableSortedSet` | HAMT + sorted keys | O(log₃₂ n) lookup, ordered traversal |
+| `ImmutableQueue` | Two-stack | O(1) amortized enqueue/dequeue |
 
 ## Quick Start
 
@@ -70,6 +73,15 @@ map := map removeKey: #version.
 map size.          "1"
 ```
 
+### SortedMaps
+
+```smalltalk
+sorted := ImmutableSortedMap fromArray: {#c -> 3. #a -> 1. #b -> 2}.
+sorted keys.       "#(#a #b #c)"
+sorted first.      "#a -> 1"
+sorted last.       "#c -> 3"
+```
+
 ### Sets
 
 ```smalltalk
@@ -82,6 +94,33 @@ set := set remove: 1.
 set union: otherSet.
 set intersection: otherSet.
 set difference: otherSet.
+```
+
+### SortedSets
+
+```smalltalk
+sorted := ImmutableSortedSet fromArray: #(3 1 2).
+sorted asArray.    "#(1 2 3)"
+sorted first.      "1"
+sorted last.       "3"
+```
+
+### Queues
+
+```smalltalk
+queue := ImmutableQueue empty.
+queue := queue enqueue: 1; enqueue: 2; enqueue: 3.
+result := queue dequeue.  "{1. queue(2 3)}"
+queue peek.               "1"
+```
+
+### Memoization
+
+```smalltalk
+lazy := vec select: [:n | n even]; collect: [:n | n * 10].
+memoized := lazy memoize.
+memoized do: [:each | ...].  "Realizes and caches"
+memoized do: [:each | ...].  "Hits cache"
 ```
 
 ## Traits
@@ -121,6 +160,18 @@ set difference: otherSet.
 #### Provides
 
 - `addAll:`, `,`
+
+### TImmutableLazySequence
+
+#### Uses
+
+- `TImmutableSequence`
+
+#### Provides
+
+- `select:`, `collect:`, `reject:`
+
+These methods return lazy views instead of realizing.
 
 ## Platform Support
 
@@ -200,12 +251,12 @@ The two-stack design gives O(1) amortized `enqueue` and `dequeue`. Branching is 
 
 | Benchmark | Speed |
 |-----------|-------|
-| Lazy chain traversal (10k) | 4,462/s |
-| Memoized first traversal (10k) | 6,562/s |
-| Memoized second traversal (10k) | 6,276/s |
-| Eager chain traversal (10k) | 262/s |
+| Lazy chain traversal (10k) | 5,886/s |
+| Memoized first traversal (10k) | 9,625/s |
+| Memoized second traversal (10k) | 9,988/s |
+| Eager chain traversal (10k) | 296/s |
 
-Memoized views cache the result on first traversal, avoiding recomputation. Second traversal is instant compared to eager chains.
+Memoized views cache the result on first traversal, avoiding recomputation. Second traversal is nearly 34x faster than eager chains.
 
 ### Where Built-ins Still Win
 
