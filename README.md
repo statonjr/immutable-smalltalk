@@ -166,6 +166,18 @@ Lookup remains competitive:
 | SortedMap at: (500) | 63,040/s | 112,994/s | 0.56x |
 | SortedSet includes: (500) | 119,717/s | 136,463/s | 0.88x |
 
+### Queue
+
+| Benchmark | Speed |
+|-----------|-------|
+| Enqueue (batch 100) | 67,114/s |
+| Dequeue all (1000) | 3,481/s |
+| Peek | 41,345/s |
+| Enqueue/dequeue mix | 206,612/s |
+| 10 branches (1000) | 1,694,915/s |
+
+The two-stack design gives O(1) amortized `enqueue` and `dequeue`. Branching is fast as expected. 10 branches from the same queue share structure at 1.7M/s.
+
 ### Where Built-ins Still Win
 
 Mutable collections avoid tree traversal and node allocation overhead.
