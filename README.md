@@ -86,23 +86,41 @@ set difference: otherSet.
 
 ## Traits
 
-### TImmutableEnumerable (requires: do:, isEmpty)
+### TImmutableEnumerable
 
-- select:, collect:, reject:
-- detect:, detect:ifNone:
-- includes:, anySatisfy:, allSatisfy:, noneSatisfy:
-- inject:into:, size, asArray
+#### Requires
 
-### TImmutableSequence (requires: first, rest, cons:, isEmpty)
+- `do:`, `isEmpty`
 
-- second, third, fourth, fifth
-- car, cdr, cadr, caddr, cadddr
-- caar, cdar, caadr, cdadr, cdddr
-- take:, drop:, takeWhile:, dropWhile:, reverse
+#### Provides
 
-### TImmutableAddable (requires: add:)
+- `select:`, `collect:`, `reject:`
+- `detect:`, `detect:ifNone:`
+- `includes:`, `anySatisfy:`, `allSatisfy:`, `noneSatisfy:`
+- `inject:into:`, `size`, `asArray`
 
-- addAll:, ,
+### TImmutableSequence
+
+#### Requires
+
+- `first`, `rest`, `cons:`, `isEmpty`
+
+#### Provides
+
+- `second`, `third`, `fourth`, `fifth`
+- `car`, `cdr`, `cadr`, `caddr`, `cadddr`
+- `caar`, `cdar`, `caadr`, `cdadr`, `cdddr`
+- `take:`, `drop:`, `takeWhile:`, `dropWhile:`, `reverse`
+
+### TImmutableAddable
+
+#### Requires
+
+- `add:`
+
+#### Provides
+
+- `addAll:`, `,`
 
 ## Platform Support
 
