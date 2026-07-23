@@ -112,6 +112,56 @@ set difference: otherSet.
 | TruffleSqueak | Planned | `setIsReadOnlyObject:` (prim 164) |
 | VAST Platform | Planned | `markReadOnly` |
 
+## Benchmarks
+
+Run with:
+
+```smalltalk
+ImmutableBenchmarks runAll
+```
+
+### Structural Sharing
+
+Where persistent data structures dominate by keeping old versions without copying.
+
+| Benchmark | Immutable | Mutable (copy) | Speedup |
+|-----------|-----------|----------------|---------|
+| Vector single append (100k) | 174,581/s | 125/s | 1,391x |
+| List 10 branches (100) | 4,048,583/s | 564,971/s | 7.2x |
+| Set single add (500) | 2,631,579/s | 1,190,476/s | 2.2x |
+
+### Sequence Operations
+
+Lazy views make `take:` and `drop:` O(1).
+
+| Benchmark | Before (eager) | After (lazy) | Speedup |
+|-----------|---------------|--------------|---------|
+| Vector take: 50 | 783/s | 21,097,046/s | 26,947x |
+| Vector drop: 50 | 1,298/s | 20,366,598/s | 15,690x |
+
+### Lookup
+
+Competitive with mutable built-in collections.
+
+| Benchmark | Immutable | Built-in | Ratio |
+|-----------|-----------|----------|-------|
+| Map at: (100 entries) | 83,382/s | 116,686/s | 0.71x |
+| Map at: (100k entries) | 4,952/s | 11,436/s | 0.43x |
+| Set includes: (500) | 120,283/s | 128,050/s | 0.94x |
+| Vector at: (100) | 681,245/s | 4,798,464/s | 0.14x |
+
+### Where Built-ins Still Win
+
+Mutable collections avoid tree traversal and node allocation overhead.
+
+| Benchmark | Immutable | Built-in | Ratio |
+|-----------|-----------|----------|-------|
+| Map building (1000) | 2,963/s | 5,970/s | 0.50x |
+| Vector building (1000) | 3,838/s | 140,845/s | 0.03x |
+| List cons: 10 | 6,510,417/s | 4,854,368/s | 1.34x |
+
+List `cons:` is _faster_ than `OrderedCollection addFirst:`. `prepend` is the natural immutable operation.
+
 ## Credits
 
 Inspired by:
