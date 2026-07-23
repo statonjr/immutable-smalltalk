@@ -178,6 +178,17 @@ Lookup remains competitive:
 
 The two-stack design gives O(1) amortized `enqueue` and `dequeue`. Branching is fast as expected. 10 branches from the same queue share structure at 1.7M/s.
 
+### Memoized Views
+
+| Benchmark | Speed |
+|-----------|-------|
+| Lazy chain traversal (10k) | 4,462/s |
+| Memoized first traversal (10k) | 6,562/s |
+| Memoized second traversal (10k) | 6,276/s |
+| Eager chain traversal (10k) | 262/s |
+
+Memoized views cache the result on first traversal, avoiding recomputation. Second traversal is instant compared to eager chains.
+
 ### Where Built-ins Still Win
 
 Mutable collections avoid tree traversal and node allocation overhead.
