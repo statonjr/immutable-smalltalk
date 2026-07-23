@@ -150,6 +150,22 @@ Competitive with mutable built-in collections.
 | Set includes: (500) | 120,283/s | 128,050/s | 0.94x |
 | Vector at: (100) | 681,245/s | 4,798,464/s | 0.14x |
 
+### Sorted Collections
+
+Pre-sorted construction via fromArray: is 28-29x faster than incremental building.
+
+| Benchmark | Naive build | fromArray: | Speedup |
+|-----------|-------------|-----------|---------|
+| SortedMap building (500) | 145/s | 4,250/s | 29.3x |
+| SortedSet building (500) | 153/s | 4,254/s | 27.8x |
+
+Lookup remains competitive:
+
+| Benchmark | Immutable | Built-in | Ratio |
+|-----------|-----------|----------|-------|
+| SortedMap at: (500) | 63,040/s | 112,994/s | 0.56x |
+| SortedSet includes: (500) | 119,717/s | 136,463/s | 0.88x |
+
 ### Where Built-ins Still Win
 
 Mutable collections avoid tree traversal and node allocation overhead.
