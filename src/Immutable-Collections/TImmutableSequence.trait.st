@@ -83,6 +83,14 @@ TImmutableSequence >> fourth [
 ]
 
 { #category : 'accessing' }
+TImmutableSequence >> memoize [
+    | cache |
+    cache := ImmutableList empty.
+    self do: [:each | cache := cache cons: each].
+    ^ ImmutableMemoizedView onCache: cache reverse
+]
+
+{ #category : 'accessing' }
 TImmutableSequence >> rest [
     self explicitRequirement
 ]

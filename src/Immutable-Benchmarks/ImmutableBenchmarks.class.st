@@ -1,3 +1,12 @@
+"
+I provide benchmarks comparing Immutable collections against Pharo built-ins.
+
+Run 'ImmutableBenchmarks runAll' to execute the full suite:
+  - Map/Vector/List/Set lookup, building, and structural sharing
+  - Sorted collection building and ordered access
+  - Queue operations
+  - Lazy vs memoized view performance
+"
 Class {
 	#name : 'ImmutableBenchmarks',
 	#superclass : 'SMarkSuite',
@@ -43,6 +52,7 @@ ImmutableBenchmarks class >> runAll [
 	self runLazyViewBenchmarks.
 	self runListBenchmarks.
 	self runMapBenchmarks.
+	self runMemoizedBenchmarks.
 	self runQueueBenchmarks.
 	self runSetBenchmarks.
 	self runSortedBenchmarks.
@@ -198,7 +208,54 @@ ImmutableBenchmarks class >> runMapBenchmarks [
         1 to: 1000 do: [:i | d at: i put: i]]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'running' }
+ImmutableBenchmarks class >> runMemoizedBenchmarks [
+    | vec lazy memoized |
+    
+    Transcript show: '=== Memoized View Benchmarks ==='; cr.
+    
+    vec := ImmutableVector fromArray: (1 to: 10000) asArray.
+    lazy := vec select: [:n | n even]; collect: [:n | n * 10].
+    
+    "First traversal — realizes"
+    self run: '  Lazy chain first traversal (10k) ' iterations: 10 block: [
+        | sum |
+        sum := 0.
+        lazy do: [:each | sum := sum + each]].
+    
+    "Second traversal — recomputes"
+    self run: '  Lazy chain second traversal (10k)' iterations: 10 block: [
+        | sum |
+        sum := 0.
+        lazy do: [:each | sum := sum + each]].
+    
+    Transcript cr.
+    
+    "Memoized version"
+    memoized := lazy memoize.
+    
+    self run: '  Memoized first traversal (10k)   ' iterations: 10 block: [
+        | sum |
+        sum := 0.
+        memoized do: [:each | sum := sum + each]].
+    
+    self run: '  Memoized second traversal (10k)  ' iterations: 100 block: [
+        | sum |
+        sum := 0.
+        memoized do: [:each | sum := sum + each]].
+    
+    Transcript cr.
+    
+    "Compare: eager chain fully realized"
+    self run: '  Eager chain traversal (10k)      ' iterations: 100 block: [
+        | sum |
+        sum := 0.
+        vec select: [:n | n even]; collect: [:n | n * 10]; do: [:each | sum := sum + each]].
+
+	 Transcript cr.
+]
+
+{ #category : 'running' }
 ImmutableBenchmarks class >> runQueueBenchmarks [
     | queue |
     
@@ -289,7 +346,7 @@ ImmutableBenchmarks class >> runSetBenchmarks [
         s2 add: 999]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'running' }
 ImmutableBenchmarks class >> runSortedBenchmarks [
     | immSortedMap immSortedSet dict set items |
     
