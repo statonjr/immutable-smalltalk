@@ -27,6 +27,9 @@ Metacello new
 | `ImmutableVector` | 32-way branching | O(log₃₂ n) at, O(1) amortized add |
 | `ImmutableMap` | HAMT | O(log₃₂ n) put/at/remove |
 | `ImmutableSet` | HAMT-backed | O(log₃₂ n) add/remove/includes |
+| `ImmutableSortedMap` | HAMT + sorted keys | O(log₃₂ n) lookup, ordered traversal |
+| `ImmutableSortedSet` | HAMT + sorted keys | O(log₃₂ n) lookup, ordered traversal |
+| `ImmutableQueue` | Two-stack | O(1) amortized enqueue/dequeue |
 
 ## Quick Start
 
@@ -70,6 +73,15 @@ map := map removeKey: #version.
 map size.          "1"
 ```
 
+### SortedMaps
+
+```smalltalk
+sorted := ImmutableSortedMap fromArray: {#c -> 3. #a -> 1. #b -> 2}.
+sorted keys.       "#(#a #b #c)"
+sorted first.      "#a -> 1"
+sorted last.       "#c -> 3"
+```
+
 ### Sets
 
 ```smalltalk
@@ -84,25 +96,82 @@ set intersection: otherSet.
 set difference: otherSet.
 ```
 
+### SortedSets
+
+```smalltalk
+sorted := ImmutableSortedSet fromArray: #(3 1 2).
+sorted asArray.    "#(1 2 3)"
+sorted first.      "1"
+sorted last.       "3"
+```
+
+### Queues
+
+```smalltalk
+queue := ImmutableQueue empty.
+queue := queue enqueue: 1; enqueue: 2; enqueue: 3.
+result := queue dequeue.  "{1. queue(2 3)}"
+queue peek.               "1"
+```
+
+### Memoization
+
+```smalltalk
+lazy := vec select: [:n | n even]; collect: [:n | n * 10].
+memoized := lazy memoize.
+memoized do: [:each | ...].  "Realizes and caches"
+memoized do: [:each | ...].  "Hits cache"
+```
+
 ## Traits
 
-### TImmutableEnumerable (requires: do:, isEmpty)
+### TImmutableEnumerable
 
-- select:, collect:, reject:
-- detect:, detect:ifNone:
-- includes:, anySatisfy:, allSatisfy:, noneSatisfy:
-- inject:into:, size, asArray
+#### Requires
 
-### TImmutableSequence (requires: first, rest, cons:, isEmpty)
+- `do:`, `isEmpty`
 
-- second, third, fourth, fifth
-- car, cdr, cadr, caddr, cadddr
-- caar, cdar, caadr, cdadr, cdddr
-- take:, drop:, takeWhile:, dropWhile:, reverse
+#### Provides
 
-### TImmutableAddable (requires: add:)
+- `select:`, `collect:`, `reject:`
+- `detect:`, `detect:ifNone:`
+- `includes:`, `anySatisfy:`, `allSatisfy:`, `noneSatisfy:`
+- `inject:into:`, `size`, `asArray`
 
-- addAll:, ,
+### TImmutableSequence
+
+#### Requires
+
+- `first`, `rest`, `cons:`, `isEmpty`
+
+#### Provides
+
+- `second`, `third`, `fourth`, `fifth`
+- `car`, `cdr`, `cadr`, `caddr`, `cadddr`
+- `caar`, `cdar`, `caadr`, `cdadr`, `cdddr`
+- `take:`, `drop:`, `takeWhile:`, `dropWhile:`, `reverse`
+
+### TImmutableAddable
+
+#### Requires
+
+- `add:`
+
+#### Provides
+
+- `addAll:`, `,`
+
+### TImmutableLazySequence
+
+#### Uses
+
+- `TImmutableSequence`
+
+#### Provides
+
+- `select:`, `collect:`, `reject:`
+
+These methods return lazy views instead of realizing.
 
 ## Platform Support
 
@@ -178,17 +247,33 @@ Lookup remains competitive:
 
 The two-stack design gives O(1) amortized `enqueue` and `dequeue`. Branching is fast as expected. 10 branches from the same queue share structure at 1.7M/s.
 
+### Memoized Views
+
+| Benchmark | Speed |
+|-----------|-------|
+| Lazy chain traversal (10k) | 5,886/s |
+| Memoized first traversal (10k) | 9,625/s |
+| Memoized second traversal (10k) | 9,988/s |
+| Eager chain traversal (10k) | 296/s |
+
+Memoized views cache the result on first traversal, avoiding recomputation. Second traversal is nearly 34x faster than eager chains.
+
 ### Where Built-ins Still Win
 
 Mutable collections avoid tree traversal and node allocation overhead.
 
 | Benchmark | Immutable | Built-in | Ratio |
 |-----------|-----------|----------|-------|
-| Map building (1000) | 2,963/s | 5,970/s | 0.50x |
-| Vector building (1000) | 3,838/s | 140,845/s | 0.03x |
-| List cons: 10 | 6,510,417/s | 4,854,368/s | 1.34x |
+| Map building (1000) | 3,076/s | 8,143/s | 0.38x |
+| Vector building (1000) | 6,181/s | 136,799/s | 0.05x |
+| Vector at: (100k) | 59,542/s | 209,030/s | 0.28x |
+| Set building (500) | 4,990/s | 19,298/s | 0.26x |
+| SortedMap building (500) | 111/s | - | - |
+| SortedSet building (500) | 111/s | - | - |
 
-List `cons:` is _faster_ than `OrderedCollection addFirst:`. `prepend` is the natural immutable operation.
+Note: Sorted collection building is slow (O(n²) incremental insert). Use `fromArray:` for 28-37x faster bulk construction.
+
+List `cons:` is faster than `OrderedCollection addFirst:`. `prepend` is the natural immutable operation (6.5M/s vs 5.6M/s).
 
 ## Credits
 
