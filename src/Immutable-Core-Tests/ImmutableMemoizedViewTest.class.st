@@ -63,6 +63,30 @@ ImmutableMemoizedViewTest >> testMemoize [
 ]
 
 { #category : 'tests' }
+ImmutableMemoizedViewTest >> testMemoizeRealizesImmediately [
+
+		| evaluations lazy memoized |
+      evaluations := 0.
+
+      lazy := (vec drop: 1) collect: [ :each |
+                 evaluations := evaluations + 1.
+                 each * 10 ].
+
+      self assert: evaluations equals: 0.
+
+      memoized := lazy memoize.
+
+      "memoize traverses and caches immediately."
+      self assert: evaluations equals: 9.
+
+      memoized do: [ :each | each yourself ].
+      memoized do: [ :each | each yourself ].
+
+      "Cached traversals do not reevaluate the transformation."
+      self assert: evaluations equals: 9
+]
+
+{ #category : 'tests' }
 ImmutableMemoizedViewTest >> testRest [
     | view rest |
     view := ImmutableMemoizedView on: vec.

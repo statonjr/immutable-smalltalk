@@ -62,55 +62,63 @@ ImmutableBenchmarks class >> runAll [
 { #category : 'running' }
 ImmutableBenchmarks class >> runLazyViewBenchmarks [
     | vec |
-    
-    Transcript show: '=== Lazy View Benchmarks ==='; cr.
-    
-    vec := ImmutableVector fromArray: (1 to: 10000) asArray.
-    
-    "Lazy chain — views stacked, no copying"
-    self run: '  Lazy view chain (10k, 5 ops)    ' iterations: 1000 block: [
-        | result |
-        result := vec drop: 100.
-        result := result take: 5000.
-        result := result select: [:n | n even].
-        result := result collect: [:n | n * 10].
-        result first].
-    
-    "Eager chain — each step realizes"
-    self run: '  Eager chain (10k, 5 ops)       ' iterations: 100 block: [
-        | result |
-        result := vec.
-        result := result drop: 100.
-        result := result take: 5000.
-        result := result select: [:n | n even].
-        result := result collect: [:n | n * 10].
-        result first].
-    
-    Transcript cr.
-    
-    "Lazy: access just first element after chain"
-    self run: '  Lazy chain + first only (10k)  ' iterations: 10000 block: [
-        | result |
-        result := vec drop: 100; take: 5000; select: [:n | n even]; collect: [:n | n * 10].
-        result first].
-    
-    "Lazy: realize entire chain"
-    self run: '  Lazy chain + full realize (10k) ' iterations: 10 block: [
-        | result sum |
-        result := vec drop: 100; take: 5000; select: [:n | n even]; collect: [:n | n * 10].
-        sum := 0.
-        result do: [:each | sum := sum + each]].
-    
-    "Eager: full realization"
-    self run: '  Eager chain + full realize (10k)' iterations: 10 block: [
-        | result sum |
-        result := vec.
-        result := result drop: 100.
-        result := result take: 5000.
-        result := result select: [:n | n even].
-        result := result collect: [:n | n * 10].
-        sum := 0.
-        result do: [:each | sum := sum + each]]
+      Transcript
+         show: '=== Lazy View Benchmarks ===';
+         cr.
+
+      vec := ImmutableVector fromArray: (1 to: 10000) asArray.
+
+      self
+         run: '  Lazy chain + first only (10k)   '
+         iterations: 10000
+         block: [
+            | result |
+            result := vec drop: 100.
+            result := result take: 5000.
+            result := result select: [ :n | n even ].
+            result := result collect: [ :n | n * 10 ].
+            result first ].
+
+      self
+         run: '  Eager chain + first only (10k)  '
+         iterations: 100
+         block: [
+            | result |
+            result := (vec drop: 100) asImmutableVector.
+            result := (result take: 5000) asImmutableVector.
+            result := result select: [ :n | n even ].
+            result := result collect: [ :n | n * 10 ].
+            result first ].
+
+      self
+         run: '  Lazy chain + full traversal (10k)'
+         iterations: 10
+         block: [
+            | result sum |
+            result := vec drop: 100.
+            result := result take: 5000.
+            result := result select: [ :n | n even ].
+            result := result collect: [ :n | n * 10 ].
+
+            sum := 0.
+            result do: [ :each |
+               sum := sum + each ] ].
+
+      self
+         run: '  Eager chain + full traversal (10k)'
+         iterations: 10
+         block: [
+            | result sum |
+            result := (vec drop: 100) asImmutableVector.
+            result := (result take: 5000) asImmutableVector.
+            result := result select: [ :n | n even ].
+            result := result collect: [ :n | n * 10 ].
+
+            sum := 0.
+            result do: [ :each |
+               sum := sum + each ] ].
+
+		Transcript cr.
 ]
 
 { #category : 'running' }
@@ -211,48 +219,56 @@ ImmutableBenchmarks class >> runMapBenchmarks [
 { #category : 'running' }
 ImmutableBenchmarks class >> runMemoizedBenchmarks [
     | vec lazy memoized |
-    
-    Transcript show: '=== Memoized View Benchmarks ==='; cr.
-    
-    vec := ImmutableVector fromArray: (1 to: 10000) asArray.
-    lazy := vec select: [:n | n even]; collect: [:n | n * 10].
-    
-    "First traversal — realizes"
-    self run: '  Lazy chain first traversal (10k) ' iterations: 10 block: [
-        | sum |
-        sum := 0.
-        lazy do: [:each | sum := sum + each]].
-    
-    "Second traversal — recomputes"
-    self run: '  Lazy chain second traversal (10k)' iterations: 10 block: [
-        | sum |
-        sum := 0.
-        lazy do: [:each | sum := sum + each]].
-    
-    Transcript cr.
-    
-    "Memoized version"
-    memoized := lazy memoize.
-    
-    self run: '  Memoized first traversal (10k)   ' iterations: 10 block: [
-        | sum |
-        sum := 0.
-        memoized do: [:each | sum := sum + each]].
-    
-    self run: '  Memoized second traversal (10k)  ' iterations: 100 block: [
-        | sum |
-        sum := 0.
-        memoized do: [:each | sum := sum + each]].
-    
-    Transcript cr.
-    
-    "Compare: eager chain fully realized"
-    self run: '  Eager chain traversal (10k)      ' iterations: 100 block: [
-        | sum |
-        sum := 0.
-        vec select: [:n | n even]; collect: [:n | n * 10]; do: [:each | sum := sum + each]].
+      Transcript
+         show: '=== Memoized View Benchmarks ===';
+         cr.
 
-	 Transcript cr.
+      vec := ImmutableVector fromArray: (1 to: 10000) asArray.
+
+      "drop: creates a lazy sub-vector without removing any matching
+      even values from the benchmark."
+      lazy := (vec drop: 1) select: [ :n | n even ].
+      lazy := lazy collect: [ :n | n * 10 ].
+
+      self
+         run: '  Lazy traversal, recomputed (10k) '
+         iterations: 10
+         block: [
+            | sum |
+            sum := 0.
+            lazy do: [ :each |
+               sum := sum + each ] ].
+
+      self
+         run: '  Memoize: realize and cache (10k) '
+         iterations: 10
+         block: [
+            lazy memoize ].
+
+      memoized := lazy memoize.
+
+      self
+         run: '  Memoized cached traversal (10k) '
+         iterations: 100
+         block: [
+            | sum |
+            sum := 0.
+            memoized do: [ :each |
+               sum := sum + each ] ].
+
+      self
+         run: '  Eager build and traversal (10k) '
+         iterations: 100
+         block: [
+            | result sum |
+            result := vec select: [ :n | n even ].
+            result := result collect: [ :n | n * 10 ].
+
+            sum := 0.
+            result do: [ :each |
+               sum := sum + each ] ].
+
+	 	Transcript cr.
 ]
 
 { #category : 'running' }
