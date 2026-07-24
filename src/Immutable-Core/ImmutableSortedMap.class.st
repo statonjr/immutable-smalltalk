@@ -64,12 +64,6 @@ ImmutableSortedMap class >> fromSortedAssociations: sortedAssocs [
     ^ self basicNew initializeWithMap: map sortedKeys: keys
 ]
 
-{ #category : 'sorting' }
-ImmutableSortedMap class >> sortBlock: aBlock [
-    "Create empty sorted map with custom sort order"
-    ^ self basicNew initializeWithSortBlock: aBlock
-]
-
 { #category : 'adding' }
 ImmutableSortedMap >> add: anAssociation [
     ^ self put: anAssociation key value: anAssociation value
@@ -121,13 +115,6 @@ ImmutableSortedMap >> initializeEmpty [
 ImmutableSortedMap >> initializeWithMap: aMap sortedKeys: aList [
     map := aMap.
     sortedKeys := aList.
-    self makeImmutable
-]
-
-{ #category : 'initialization' }
-ImmutableSortedMap >> initializeWithSortBlock: aBlock [
-    map := ImmutableMap empty.
-    "sortedKeys will be an ordered list using the sort block"
     self makeImmutable
 ]
 
