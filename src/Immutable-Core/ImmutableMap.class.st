@@ -43,6 +43,31 @@ ImmutableMap class >> fromDictionary: aDictionary [
     ^ map
 ]
 
+{ #category : 'comparing' }
+ImmutableMap >> = anObject [
+
+		self == anObject ifTrue: [
+         ^ true ].
+
+      (anObject isKindOf: ImmutableObject) ifFalse: [
+         ^ false ].
+
+      anObject isImmutableMap ifFalse: [
+         ^ false ].
+
+      self size = anObject size ifFalse: [
+         ^ false ].
+
+      self keysAndValuesDo: [ :key :value |
+         (anObject includesKey: key) ifFalse: [
+            ^ false ].
+
+         (anObject at: key) = value ifFalse: [
+            ^ false ] ].
+
+      ^ true
+]
+
 { #category : 'initialization' }
 ImmutableMap >> add: anAssociation [
     ^ self put: anAssociation key value: anAssociation value
@@ -88,6 +113,19 @@ ImmutableMap >> fromAssociations: aCollection [
     ^ map
 ]
 
+{ #category : 'comparing' }
+ImmutableMap >> hash [
+
+		| result pairHash |
+      result := 16r4D4150 bitXor: self size hash.
+
+      self keysAndValuesDo: [ :key :value |
+         pairHash := key hash hashMultiply bitXor: value hash.
+         result := result bitXor: pairHash ].
+
+      ^ result
+]
+
 { #category : 'initialization' }
 ImmutableMap >> includesKey: key [
     | hash |
@@ -113,6 +151,12 @@ ImmutableMap >> initializeWithSize: aSize root: aRoot [
 { #category : 'initialization' }
 ImmutableMap >> isEmpty [
     ^ size = 0
+]
+
+{ #category : 'testing' }
+ImmutableMap >> isImmutableMap [
+
+	^ true.
 ]
 
 { #category : 'initialization' }

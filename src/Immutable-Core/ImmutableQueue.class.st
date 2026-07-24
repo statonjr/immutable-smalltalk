@@ -40,6 +40,21 @@ ImmutableQueue class >> fromArray: anArray [
     ^ queue
 ]
 
+{ #category : 'comparing' }
+ImmutableQueue >> = anObject [
+
+		self == anObject ifTrue: [
+         ^ true ].
+
+      (anObject isKindOf: ImmutableObject) ifFalse: [
+         ^ false ].
+
+      anObject isImmutableQueue ifFalse: [
+         ^ false ].
+
+      ^ self asArray = anObject asArray
+]
+
 { #category : 'adding' }
 ImmutableQueue >> add: anObject [
     ^ self enqueue: anObject
@@ -68,6 +83,18 @@ ImmutableQueue >> enqueue: anObject [
     ^ self class basicNew initializeWithIn: (in cons: anObject) out: out
 ]
 
+{ #category : 'comparing' }
+ImmutableQueue >> hash [
+
+      | result |
+      result := 16r515545.
+
+      self do: [ :each |
+         result := (result + each hash) hashMultiply ].
+
+      ^ result
+]
+
 { #category : 'initialization' }
 ImmutableQueue >> initializeEmpty [
     in := ImmutableList empty.
@@ -85,6 +112,12 @@ ImmutableQueue >> initializeWithIn: inList out: outList [
 { #category : 'testing' }
 ImmutableQueue >> isEmpty [
     ^ in isEmpty and: [out isEmpty]
+]
+
+{ #category : 'testing' }
+ImmutableQueue >> isImmutableQueue [
+
+	^ true
 ]
 
 { #category : 'accessing' }

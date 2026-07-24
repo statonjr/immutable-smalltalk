@@ -15,6 +15,21 @@ Trait {
 	#package : 'Immutable-Collections'
 }
 
+{ #category : 'comparing' }
+TImmutableSequence >> = anObject [
+
+	self == anObject ifTrue: [
+         ^ true ].
+
+      (anObject isKindOf: ImmutableObject) ifFalse: [
+         ^ false ].
+
+      anObject isImmutableSequence ifFalse: [
+         ^ false ].
+
+      ^ self asArray = anObject asArray
+]
+
 { #category : 'accessing' }
 TImmutableSequence >> cadddr [
     ^ self rest rest rest first
@@ -80,6 +95,23 @@ TImmutableSequence >> first [
 { #category : 'accessing' }
 TImmutableSequence >> fourth [
     ^ self rest rest rest first
+]
+
+{ #category : 'comparing' }
+TImmutableSequence >> hash [
+
+		| result |
+      result := 16r534551.
+
+      self do: [ :each |
+         result := (result + each hash) hashMultiply ].
+
+      ^ result
+]
+
+{ #category : 'testing' }
+TImmutableSequence >> isImmutableSequence [
+	^ true.
 ]
 
 { #category : 'accessing' }

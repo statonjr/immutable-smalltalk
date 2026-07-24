@@ -64,6 +64,31 @@ ImmutableSortedMap class >> fromSortedAssociations: sortedAssocs [
     ^ self basicNew initializeWithMap: map sortedKeys: keys
 ]
 
+{ #category : 'comparing' }
+ImmutableSortedMap >> = anObject [
+
+      self == anObject ifTrue: [
+         ^ true ].
+
+      (anObject isKindOf: ImmutableObject) ifFalse: [
+         ^ false ].
+
+      anObject isImmutableMap ifFalse: [
+         ^ false ].
+
+      self size = anObject size ifFalse: [
+         ^ false ].
+
+      self keysAndValuesDo: [ :key :value |
+         (anObject includesKey: key) ifFalse: [
+            ^ false ].
+
+         (anObject at: key) = value ifFalse: [
+            ^ false ] ].
+
+      ^ true
+]
+
 { #category : 'adding' }
 ImmutableSortedMap >> add: anAssociation [
     ^ self put: anAssociation key value: anAssociation value
@@ -99,6 +124,19 @@ ImmutableSortedMap >> first [
     ^ sortedKeys first -> (map at: sortedKeys first)
 ]
 
+{ #category : 'comparing' }
+ImmutableSortedMap >> hash [
+
+      | result pairHash |
+      result := 16r4D4150 bitXor: self size hash.
+
+      self keysAndValuesDo: [ :key :value |
+         pairHash := key hash hashMultiply bitXor: value hash.
+         result := result bitXor: pairHash ].
+
+      ^ result
+]
+
 { #category : 'testing' }
 ImmutableSortedMap >> includesKey: key [
     ^ map includesKey: key
@@ -131,6 +169,12 @@ ImmutableSortedMap >> insertKey: key intoSorted: aList [
 ImmutableSortedMap >> isEmpty [
     ^ map isEmpty
 
+]
+
+{ #category : 'testing' }
+ImmutableSortedMap >> isImmutableMap [
+
+	^ true.
 ]
 
 { #category : 'accessing' }

@@ -42,6 +42,16 @@ ImmutableSortedSet class >> fromSortedArray: sortedArray [
     ^ self basicNew initializeWithSortedMap: sortedMap
 ]
 
+{ #category : 'comparing' }
+ImmutableSortedSet >> = anObject [
+
+	self == anObject ifTrue: [ ^ true ].
+	(anObject isKindOf: ImmutableObject) ifFalse: [ ^ false ].
+	anObject isImmutableSet ifFalse: [ ^ false ].
+	self size = anObject size ifFalse: [ ^ false ].
+	^ self allSatisfy: [ :each | anObject includes: each ]
+]
+
 { #category : 'adding' }
 ImmutableSortedSet >> add: anObject [
     ^ self class basicNew 
@@ -66,6 +76,18 @@ ImmutableSortedSet >> first [
     ^ pair ifNotNil: [pair key]
 ]
 
+{ #category : 'comparing' }
+ImmutableSortedSet >> hash [
+
+      | result |
+      result := 16r534554 bitXor: self size hash.
+
+      self do: [ :each |
+         result := result bitXor: each hash hashMultiply ].
+
+      ^ result
+]
+
 { #category : 'testing' }
 ImmutableSortedSet >> includes: anObject [
     ^ sortedMap includesKey: anObject
@@ -86,6 +108,12 @@ ImmutableSortedSet >> initializeWithSortedMap: aSortedMap [
 { #category : 'testing' }
 ImmutableSortedSet >> isEmpty [
     ^ sortedMap isEmpty
+]
+
+{ #category : 'testing' }
+ImmutableSortedSet >> isImmutableSet [ 
+
+	^ true.
 ]
 
 { #category : 'accessing' }

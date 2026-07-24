@@ -39,6 +39,16 @@ ImmutableSet class >> withAll: aCollection [
     ^ self fromArray: aCollection asArray
 ]
 
+{ #category : 'comparing' }
+ImmutableSet >> = anObject [
+
+	self == anObject ifTrue: [ ^ true ].
+	(anObject isKindOf: ImmutableObject) ifFalse: [ ^ false ].
+	anObject isImmutableSet ifFalse: [ ^ false ].
+	self size = anObject size ifFalse: [ ^ false ].
+	^ self allSatisfy: [ :each | anObject includes: each ]
+]
+
 { #category : 'initialization' }
 ImmutableSet >> add: anObject [
     ^ self class basicNew initializeWithMap: (map put: anObject value: true)
@@ -61,6 +71,18 @@ ImmutableSet >> difference: otherSet [
 ImmutableSet >> do: aBlock [
     map keysAndValuesDo: [:key :value | aBlock value: key]
 
+]
+
+{ #category : 'comparing' }
+ImmutableSet >> hash [
+
+      | result |
+      result := 16r534554 bitXor: self size hash.
+
+      self do: [ :each |
+         result := result bitXor: each hash hashMultiply ].
+
+      ^ result
 ]
 
 { #category : 'initialization' }
@@ -88,6 +110,12 @@ ImmutableSet >> intersection: otherSet [
 { #category : 'initialization' }
 ImmutableSet >> isEmpty [
     ^ map isEmpty
+]
+
+{ #category : 'testing' }
+ImmutableSet >> isImmutableSet [ 
+
+	^ true.
 ]
 
 { #category : 'printing' }

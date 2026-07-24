@@ -23,6 +23,26 @@ ImmutableObject >> isImmutable [
     ^ ImmutablePlatform current isImmutable: self
 ]
 
+{ #category : 'testing' }
+ImmutableObject >> isImmutableMap [
+	^ false.
+]
+
+{ #category : 'testing' }
+ImmutableObject >> isImmutableQueue [
+	^ false.
+]
+
+{ #category : 'testing' }
+ImmutableObject >> isImmutableSequence [
+	^ false.
+]
+
+{ #category : 'testing' }
+ImmutableObject >> isImmutableSet [
+	^ false.
+]
+
 { #category : 'initialization' }
 ImmutableObject >> makeDeepImmutable [
     ImmutablePlatform current makeDeepImmutable: self
