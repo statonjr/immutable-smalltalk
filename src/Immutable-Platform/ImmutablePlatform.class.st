@@ -28,9 +28,27 @@ ImmutablePlatform class >> current [
 
 { #category : 'accessing' }
 ImmutablePlatform class >> detectPlatform [
-    (Object canUnderstand: #markReadOnly) ifTrue: [^ ImmutableVASTPlatform new].
-    (Object canUnderstand: #setIsReadOnlyObject:) ifTrue: [^ ImmutablePharoPlatform new].
-    self error: 'Unknown Smalltalk platform for immutability'
+		| platformClass |
+
+      (Object canUnderstand: #setIsReadOnlyObject:) ifTrue: [
+         platformClass := Smalltalk
+                             at: #ImmutablePharoPlatform
+                             ifAbsent: [
+                                self error:
+                                   'Pharo immutability support is not loaded' ].
+
+         ^ platformClass new ].
+
+      (Object canUnderstand: #markReadOnly) ifTrue: [
+         platformClass := Smalltalk
+                             at: #ImmutableVASTPlatform
+                             ifAbsent: [
+                                self error:
+                                   'VAST immutability support is not implemented' ].
+
+         ^ platformClass new ].
+
+      self error: 'Unknown Smalltalk platform for immutability'
 ]
 
 { #category : 'converting' }
