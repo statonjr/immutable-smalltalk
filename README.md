@@ -19,6 +19,22 @@ Metacello new
     load
 ```
 
+```smalltalk
+"Load tests"
+Metacello new
+    baseline: 'Immutable';
+    repository: 'github://statonjr/immutable-smalltalk:main/src';
+    load: 'Tests'
+```
+
+```smalltalk
+"Load benchmarks and SMark"
+Metacello new
+    baseline: 'Immutable';
+    repository: 'github://statonjr/immutable-smalltalk:main/src';
+    load: 'Benchmarks'
+```
+
 ## Collections
 
 | Collection | Backend | Key Operations |
