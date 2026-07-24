@@ -225,3 +225,36 @@ ImmutableVectorTest >> testTransientBatchOperations [
     self assert: (result at: 0) equals: 1.
     self assert: (result at: 9) equals: 10
 ]
+
+{ #category : 'tests' }
+ImmutableVectorTest >> testTransientPromotesFirstTailCorrectly [
+	| transient vec |
+      transient := ImmutableVectorTransient from: ImmutableVector empty.
+
+      1 to: 33 do: [ :i |
+         transient add: i ].
+
+      vec := transient persistent.
+
+      self assert: vec size equals: 33.
+
+      1 to: 33 do: [ :i |
+         self assert: (vec at: i - 1) equals: i ]
+]
+
+{ #category : 'tests' }
+ImmutableVectorTest >> testTransientSupportsMultipleRootLevels [
+	| transient vec |
+      transient := ImmutableVectorTransient from: ImmutableVector empty.
+
+      1 to: 100000 do: [ :i |
+         transient add: i ].
+
+      vec := transient persistent.
+
+      self assert: vec size equals: 100000.
+
+      #(1 32 33 1024 1025 1056 1057 32768 32800 32801 100000)
+         do: [ :i |
+            self assert: (vec at: i - 1) equals: i ]
+]

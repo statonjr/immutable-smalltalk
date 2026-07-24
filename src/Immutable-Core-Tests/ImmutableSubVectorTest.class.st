@@ -140,6 +140,36 @@ ImmutableSubVectorTest >> testImmutability [
 ]
 
 { #category : 'tests' }
+ImmutableSubVectorTest >> testLargeFilteredViewTakeRealization [
+		| source view realized |
+      source := ImmutableVector fromArray: (1 to: 100) asArray.
+      view := (source drop: 1) select: [ :each | each even ].
+
+      realized := view take: 40.
+
+      self assert: realized size equals: 40.
+      self assert: (realized isKindOf: ImmutableVector).
+
+      1 to: 40 do: [ :i |
+         self assert: (realized at: i - 1) equals: i * 2 ]
+]
+
+{ #category : 'tests' }
+ImmutableSubVectorTest >> testLargeSubVectorRealization [
+		| source subVector realized |
+      source := ImmutableVector fromArray: (1 to: 100) asArray.
+      subVector := (source drop: 10) take: 70.
+
+      realized := subVector asImmutableVector.
+
+      self assert: realized size equals: 70.
+      self assert: (realized isKindOf: ImmutableVector).
+
+      1 to: 70 do: [ :i |
+         self assert: (realized at: i - 1) equals: i + 10 ]
+]
+
+{ #category : 'tests' }
 ImmutableSubVectorTest >> testOriginalUnchanged [
     | sub |
     sub := vec drop: 3; take: 2.

@@ -28,15 +28,20 @@ ImmutableVectorTransient class >> from: anImmutableVector [
 
 { #category : 'initialization' }
 ImmutableVectorTransient >> add: anObject [
-    tail size < 32 ifTrue: [
-        tail := tail copyWith: anObject.
-        size := size + 1.
-        ^ self].
-    
-    "Promote tail and start new one"
-    root := self promoteTailIntoRoot.
-    tail := Array with: anObject.
-    size := size + 1
+
+      tail ifNil: [
+         self error: 'Cannot modify a transient after persistent was sent' ].
+
+      tail size < 32 ifTrue: [
+         tail := tail copyWith: anObject.
+         size := size + 1.
+         ^ self ].
+
+      root := self promoteTailIntoRoot.
+      tail := Array with: anObject.
+      size := size + 1.
+
+      ^ self
 ]
 
 { #category : 'initialization' }
@@ -48,22 +53,31 @@ ImmutableVectorTransient >> initializeFrom: aVector [
 ]
 
 { #category : 'initialization' }
-ImmutableVectorTransient >> insertNode: node intoRoot: aRoot atIndex: index shift: currentShift [
-    | subIndex child |
-    currentShift = 0 ifTrue: [^ node].
-    
-    subIndex := ((index >> currentShift) bitAnd: 31) + 1.
-    child := aRoot at: subIndex ifAbsent: [nil].
-    child ifNil: [child := Array new: 32. aRoot at: subIndex put: child].
-    
-    child
-        at: ((index >> (currentShift - 5)) bitAnd: 31) + 1
-        put: (self 
-            insertNode: node 
-            intoRoot: child 
-            atIndex: index 
-            shift: currentShift - 5).
-    ^ aRoot
+ImmutableVectorTransient >> insertTail: aTail intoRoot: aRoot atIndex: index shift: currentShift [
+		| subIndex newRoot child newChild |
+      subIndex := ((index >> currentShift) bitAnd: 31) + 1.
+      newRoot := aRoot copy.
+
+      currentShift = 5 ifTrue: [
+         newRoot at: subIndex put: aTail.
+         ^ newRoot ].
+
+      child := aRoot
+                  at: subIndex
+                  ifAbsent: [ nil ].
+
+      child ifNil: [
+         child := Array new: 32 ].
+
+      newChild := self
+                     insertTail: aTail
+                     intoRoot: child
+                     atIndex: index
+                     shift: currentShift - 5.
+
+      newRoot at: subIndex put: newChild.
+
+      ^ newRoot
 ]
 
 { #category : 'initialization' }
@@ -83,7 +97,20 @@ ImmutableVectorTransient >> persistent [
 
 { #category : 'initialization' }
 ImmutableVectorTransient >> promoteTailIntoRoot [
-    | nodeCount |
-    nodeCount := size >> 5.
-    ^ self insertNode: tail intoRoot: root atIndex: nodeCount shift: shift
+		| newRoot tailStart |
+      newRoot := root.
+
+      "The current tree is full. Add a new root above it."
+      ((size >> 5) > (1 << shift)) ifTrue: [
+         newRoot := Array new: 32.
+         newRoot at: 1 put: root.
+         shift := shift + 5 ].
+
+      tailStart := size - tail size.
+
+      ^ self
+           insertTail: tail
+           intoRoot: newRoot
+           atIndex: tailStart
+           shift: shift
 ]
