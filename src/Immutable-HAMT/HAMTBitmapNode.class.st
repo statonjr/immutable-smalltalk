@@ -100,31 +100,61 @@ HAMTBitmapNode >> maskIndex: aHash shift: shift [
 { #category : 'initialization' }
 HAMTBitmapNode >> remove: aKey hash: aHash shift: shift [
 
-	| bit childIndex child newChild newChildren |
-	bit := self bitForIndex: (self maskIndex: aHash shift: shift).
-	(bitmap bitAnd: bit) = 0 ifTrue: [ ^ self ].
-	childIndex := self childIndexForBit: bit.
-	child := children at: childIndex + 1.
-	newChild := child remove: aKey hash: aHash shift: shift + 5.
-	newChild == child ifTrue: [ ^ self ].
+		| bit childIndex child newChild newChildren |
+      bit := self bitForIndex: (self maskIndex: aHash shift: shift).
 
-	newChild ifNil: [ "Child was removed - update bitmap"
-			| newBitmap |
-			newBitmap := bitmap bitClear: bit.
-			newBitmap = 0 ifTrue: [ ^ nil ].
-			newChildren := Array new: children size - 1.
+      (bitmap bitAnd: bit) = 0 ifTrue: [
+         ^ self ].
 
-			"Copy children before the removed one"
-			1 to: childIndex do: [ :i | newChildren at: i put: (children at: i) ].
+      childIndex := self childIndexForBit: bit.
+      child := children at: childIndex + 1.
 
-			"Copy children after the removed one"
-			childIndex + 2 to: children size do: [ :i | newChildren at: i - 1 put: (children at: i) ].
+      newChild := child
+                     remove: aKey
+                     hash: aHash
+                     shift: shift + 5.
 
-			children size - 1 = 1 ifTrue: [ "Compress - only one child remains" ^ newChildren first ].
+      newChild == child ifTrue: [
+         ^ self ].
 
-			^ HAMTBitmapNode new initializeWithBitmap: newBitmap children: newChildren ].
+      newChild ifNil: [
+         | newBitmap remainingChild |
 
-	newChildren := children copy.
-	newChildren at: childIndex + 1 put: newChild.
-	^ HAMTBitmapNode new initializeWithBitmap: bitmap children: newChildren
+         newBitmap := bitmap bitClear: bit.
+         newBitmap = 0 ifTrue: [
+            ^ nil ].
+
+         newChildren := Array new: children size - 1.
+
+         "Copy children before the removed child."
+         1 to: childIndex do: [ :i |
+            newChildren at: i put: (children at: i) ].
+
+         "Copy children after the removed child."
+         childIndex + 2 to: children size do: [ :i |
+            newChildren
+               at: i - 1
+               put: (children at: i) ].
+
+         newChildren size = 1 ifTrue: [
+            remainingChild := newChildren first.
+
+            "Leaves and collision nodes check complete hashes and may
+            safely move upward. Bitmap nodes encode a particular hash
+            shift and must remain at their current depth."
+            (remainingChild isKindOf: HAMTBitmapNode) ifFalse: [
+               ^ remainingChild ] ].
+
+         ^ HAMTBitmapNode new
+              initializeWithBitmap: newBitmap
+              children: newChildren ].
+
+      newChildren := children copy.
+      newChildren
+         at: childIndex + 1
+         put: newChild.
+
+      ^ HAMTBitmapNode new
+           initializeWithBitmap: bitmap
+           children: newChildren
 ]

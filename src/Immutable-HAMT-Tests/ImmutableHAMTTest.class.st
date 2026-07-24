@@ -367,6 +367,90 @@ ImmutableHAMTTest >> testNilValue [
 ]
 
 { #category : 'tests' }
+ImmutableHAMTTest >> testRemovalDoesNotHoistRemainingBitmapNode [
+
+		| root result firstNode secondNode entries |
+      root := HAMTLeafNode new
+                 initializeWithHash: 1
+                 key: #first
+                 value: 'First'.
+
+      "Hashes 1 and 33 share their shift-0 chunk and therefore
+      require a nested bitmap node."
+      root := root
+                 insert: #second
+                 value: 'Second'
+                 hash: 33
+                 shift: 0
+                 added: [ :added | self assert: added ].
+
+      "Hash 2 occupies a separate branch at the root."
+      root := root
+                 insert: #remove
+                 value: 'Remove'
+                 hash: 2
+                 shift: 0
+                 added: [ :added | self assert: added ].
+
+      result := root
+                   remove: #remove
+                   hash: 2
+                   shift: 0.
+
+      firstNode := result
+                      lookup: #first
+                      hash: 1
+                      shift: 0.
+
+      secondNode := result
+                       lookup: #second
+                       hash: 33
+                       shift: 0.
+
+      self deny: firstNode isNil.
+      self deny: secondNode isNil.
+      self assert: firstNode value equals: 'First'.
+      self assert: secondNode value equals: 'Second'.
+
+      entries := OrderedCollection new.
+      result do: [ :each | entries add: each ].
+
+      self assert: entries size equals: 2
+]
+
+{ #category : 'tests' }
+ImmutableHAMTTest >> testRemovalMayCompressRemainingLeaf [
+
+		| root result |
+      root := HAMTBitmapNode new
+                 initializeWithBitmap: 0
+                 children: #().
+
+      root := root
+                 insert: #first
+                 value: 1
+                 hash: 1
+                 shift: 0
+                 added: [ :added | self assert: added ].
+
+      root := root
+                 insert: #second
+                 value: 2
+                 hash: 2
+                 shift: 0
+                 added: [ :added | self assert: added ].
+
+      result := root
+                   remove: #second
+                   hash: 2
+                   shift: 0.
+
+      self assert: (result isKindOf: HAMTLeafNode).
+      self assert: result key equals: #first.
+      self assert: result value equals: 1
+]
+
+{ #category : 'tests' }
 ImmutableHAMTTest >> testRemoveNonExistent [
     | node result |
     node := HAMTBitmapNode new initializeWithBitmap: 0 children: #().
