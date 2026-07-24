@@ -150,6 +150,18 @@ ImmutableSubVectorTest >> testDropZero [
 ]
 
 { #category : 'tests' }
+ImmutableSubVectorTest >> testFilteredViewContainingNilIsNotEmpty [
+
+		| source view |
+      source := ImmutableVector fromArray: { 1. nil. 2 }.
+      view := (source drop: 1) select: [ :each | each isNil ].
+
+      self deny: view isEmpty.
+      self assert: view size equals: 1.
+      self assert: view first isNil
+]
+
+{ #category : 'tests' }
 ImmutableSubVectorTest >> testFirst [
     | result |
     result := vec drop: 5.

@@ -44,8 +44,21 @@ ImmutableSubVector >> asImmutableVector [
 
 { #category : 'accessing' }
 ImmutableSubVector >> at: index [
-    (index < 0 or: [ index >= subSize ]) ifTrue: [
-         ^ self error: 'Index out of bounds: ', index printString ].
+    ^ self
+           at: index
+           ifAbsent: [
+              SubscriptOutOfBounds
+                 signalFor: index
+                 lowerBound: 0
+                 upperBound: subSize - 1
+                 in: self ]
+]
+
+{ #category : 'accessing' }
+ImmutableSubVector >> at: index ifAbsent: absentBlock [
+
+      (index < 0 or: [ index >= subSize ]) ifTrue: [
+         ^ absentBlock value ].
 
       ^ vector at: offset + index
 ]

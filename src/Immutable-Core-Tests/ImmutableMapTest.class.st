@@ -89,8 +89,33 @@ ImmutableMapTest >> testKeysAndValues [
     map := map put: #c value: 3.
     keys := map keys sorted.
     values := map values sorted.
-    self assert: keys equals: #(#a #b #c) asOrderedCollection.
-    self assert: values equals: #(1 2 3) asOrderedCollection.
+    self assert: keys asArray equals: #(#a #b #c).
+   	 self assert: values asArray equals: #(1 2 3)
+]
+
+{ #category : 'tests' }
+ImmutableMapTest >> testKeysAndValuesAreDetachedSnapshots [
+
+		| map keys values |
+      map := ImmutableMap fromAssociations: {
+                #a -> 1.
+                #b -> 2 }.
+
+      keys := map keys.
+      values := map values.
+
+      self assert: keys class equals: Array.
+      self assert: values class equals: Array.
+
+      keys at: 1 put: #changed.
+      values at: 1 put: #changed.
+
+      self assert: map size equals: 2.
+      self assert: (map includesKey: #a).
+      self assert: (map includesKey: #b).
+      self deny: (map includesKey: #changed).
+      self assert: (map values includes: 1).
+      self assert: (map values includes: 2)
 ]
 
 { #category : 'tests' }

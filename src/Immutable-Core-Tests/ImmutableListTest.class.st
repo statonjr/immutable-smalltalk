@@ -57,7 +57,23 @@ ImmutableListTest >> testAt [
     self assert: (list at: 0) equals: 10.
     self assert: (list at: 2) equals: 30.
     self assert: (list at: 4) equals: 50.
-    self assert: (list at: 99) isNil
+    
+	 self
+       should: [ list at: 99 ]
+       raise: SubscriptOutOfBounds
+]
+
+{ #category : 'tests' }
+ImmutableListTest >> testAtIfAbsent [
+
+		| list sentinel |
+      sentinel := Object new.
+      list := ImmutableList fromArray: { 10. nil. 30 }.
+
+      self assert: (list at: 0 ifAbsent: [ sentinel ]) equals: 10.
+      self assert: (list at: 1 ifAbsent: [ sentinel ]) isNil.
+      self assert: (list at: -1 ifAbsent: [ sentinel ]) identicalTo: sentinel.
+      self assert: (list at: 3 ifAbsent: [ sentinel ]) identicalTo: sentinel
 ]
 
 { #category : 'tests' }
@@ -126,6 +142,37 @@ ImmutableListTest >> testConsMultiple [
     self assert: list first equals: 1.
     self assert: list rest first equals: 2.
     self assert: list rest rest first equals: 3
+]
+
+{ #category : 'tests' }
+ImmutableListTest >> testDetectIfNoneDistinguishesMatchedNilFromNoMatch [
+
+		| list sentinel result |
+      sentinel := Object new.
+      list := ImmutableList fromArray: { 1. nil. 3 }.
+
+      result := list
+                   detect: [ :each | each isNil ]
+                   ifNone: [ sentinel ].
+
+      self assert: result isNil.
+
+      result := list
+                   detect: [ :each | each = 99 ]
+                   ifNone: [ sentinel ].
+
+      self assert: result identicalTo: sentinel
+]
+
+{ #category : 'tests' }
+ImmutableListTest >> testDetectSignalsWhenNoElementMatches [
+
+		| list |
+      list := ImmutableList fromArray: #(1 2 3).
+
+      self
+         should: [ list detect: [ :each | each = 99 ] ]
+         raise: NotFound
 ]
 
 { #category : 'tests' }

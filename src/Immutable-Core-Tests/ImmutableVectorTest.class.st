@@ -28,6 +28,19 @@ ImmutableVectorTest >> testAddMultiple [
 ]
 
 { #category : 'tests' }
+ImmutableVectorTest >> testAtIfAbsent [
+
+		| vec sentinel |
+      sentinel := Object new.
+      vec := ImmutableVector fromArray: { 10. nil. 30 }.
+
+      self assert: (vec at: 0 ifAbsent: [ sentinel ]) equals: 10.
+      self assert: (vec at: 1 ifAbsent: [ sentinel ]) isNil.
+      self assert: (vec at: -1 ifAbsent: [ sentinel ]) identicalTo: sentinel.
+      self assert: (vec at: 3 ifAbsent: [ sentinel ]) identicalTo: sentinel
+]
+
+{ #category : 'tests' }
 ImmutableVectorTest >> testCarCdrCadr [
     | vec |
     vec := ImmutableVector fromArray: #(1 2 3 4 5).

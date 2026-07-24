@@ -86,14 +86,31 @@ ImmutableList >> asArray [
 
 { #category : 'accessing' }
 ImmutableList >> at: index [
-    | current i |
-    (index < 0 or: [index >= size]) ifTrue: [^ nil].
-    current := self.
-    i := index.
-    [i > 0] whileTrue: [
-        current := current rest.
-        i := i - 1].
-    ^ current first
+    ^ self
+           at: index
+           ifAbsent: [
+              SubscriptOutOfBounds
+                 signalFor: index
+                 lowerBound: 0
+                 upperBound: size - 1
+                 in: self ]
+]
+
+{ #category : 'accessing' }
+ImmutableList >> at: index ifAbsent: absentBlock [
+
+      | current remaining |
+      (index < 0 or: [ index >= size ]) ifTrue: [
+         ^ absentBlock value ].
+
+      current := self.
+      remaining := index.
+
+      [ remaining > 0 ] whileTrue: [
+         current := current rest.
+         remaining := remaining - 1 ].
+
+      ^ current first
 ]
 
 { #category : 'initialization' }

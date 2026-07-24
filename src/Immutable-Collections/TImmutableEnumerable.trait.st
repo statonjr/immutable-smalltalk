@@ -45,13 +45,19 @@ TImmutableEnumerable >> collect: aBlock [
 
 { #category : 'enumerating' }
 TImmutableEnumerable >> detect: aBlock [
-    self do: [:each | (aBlock value: each) ifTrue: [^ each]].
-    ^ nil
+	^ self
+           detect: aBlock
+           ifNone: [ NotFound signalFor: aBlock ]
 ]
 
 { #category : 'enumerating' }
 TImmutableEnumerable >> detect: aBlock ifNone: noneBlock [
-    ^ (self detect: aBlock) ifNil: [noneBlock value]
+    
+	self do: [ :each |
+         (aBlock value: each) ifTrue: [
+            ^ each ] ].
+
+      ^ noneBlock value
 ]
 
 { #category : 'enumerating' }

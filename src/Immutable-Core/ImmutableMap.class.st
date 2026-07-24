@@ -117,10 +117,14 @@ ImmutableMap >> isEmpty [
 
 { #category : 'initialization' }
 ImmutableMap >> keys [
-    | keys |
-    keys := OrderedCollection new.
-    self keysAndValuesDo: [:key :value | keys add: key].
-    ^ keys
+
+    	| keys |
+      keys := OrderedCollection new: size.
+
+      self keysAndValuesDo: [ :key :value |
+         keys add: key ].
+
+      ^ keys asArray
 ]
 
 { #category : 'initialization' }
@@ -203,8 +207,12 @@ ImmutableMap >> size [
 
 { #category : 'initialization' }
 ImmutableMap >> values [
-    | values |
-    values := OrderedCollection new.
-    self keysAndValuesDo: [:key :value | values add: value].
-    ^ values
+
+		| values |
+      values := OrderedCollection new: size.
+
+      self keysAndValuesDo: [ :key :value |
+         values add: value ].
+
+      ^ values asArray
 ]

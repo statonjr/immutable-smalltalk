@@ -77,8 +77,8 @@ ImmutableFilteredView >> initializeWithSource: aSequence predicate: aBlock [
 
 { #category : 'initialization' }
 ImmutableFilteredView >> isEmpty [
-    self first ifNil: [^ true].
-    ^ false
+
+	^ source noneSatisfy: [ :each | predicate value: each ]
 ]
 
 { #category : 'initialization' }

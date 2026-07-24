@@ -108,9 +108,23 @@ ImmutableVector >> asArray [
 
 { #category : 'accessing' }
 ImmutableVector >> at: index [
-    (index < 0 or: [index >= size]) ifTrue: [
-        ^ self error: 'Index out of bounds: ', index printString].
-    ^ self atIndex: index
+    ^ self
+           at: index
+           ifAbsent: [
+              SubscriptOutOfBounds
+                 signalFor: index
+                 lowerBound: 0
+                 upperBound: size - 1
+                 in: self ]
+]
+
+{ #category : 'accessing' }
+ImmutableVector >> at: index ifAbsent: absentBlock [
+
+      (index < 0 or: [ index >= size ]) ifTrue: [
+         ^ absentBlock value ].
+
+      ^ self atIndex: index
 ]
 
 { #category : 'accessing' }
