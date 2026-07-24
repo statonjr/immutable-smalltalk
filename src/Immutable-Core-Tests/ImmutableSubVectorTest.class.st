@@ -28,6 +28,31 @@ ImmutableSubVectorTest >> testAddRealizes [
 ]
 
 { #category : 'tests' }
+ImmutableSubVectorTest >> testAtRejectsIndexesOutsideViewBounds [
+
+		| sub |
+      sub := (vec drop: 2) take: 3.
+
+      self assert: (sub at: 0) equals: 33.
+      self assert: (sub at: 2) equals: 55.
+
+      "Must not expose the preceding parent element."
+      self
+         should: [ sub at: -1 ]
+         raise: Error.
+
+      "Index equal to the view size is out of bounds."
+      self
+         should: [ sub at: 3 ]
+         raise: Error.
+
+      "Must not expose later parent elements."
+      self
+         should: [ sub at: 5 ]
+         raise: Error
+]
+
+{ #category : 'tests' }
 ImmutableSubVectorTest >> testCarCdrCadr [
     | result |
     result := vec drop: 4.

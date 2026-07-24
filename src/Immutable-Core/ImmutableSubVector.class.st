@@ -44,7 +44,10 @@ ImmutableSubVector >> asImmutableVector [
 
 { #category : 'accessing' }
 ImmutableSubVector >> at: index [
-    ^ vector at: offset + index
+    (index < 0 or: [ index >= subSize ]) ifTrue: [
+         ^ self error: 'Index out of bounds: ', index printString ].
+
+      ^ vector at: offset + index
 ]
 
 { #category : 'accessing' }
