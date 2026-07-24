@@ -8,8 +8,8 @@ Inspired by Clojure's PersistentHashMap, immutable-ruby's Immutable::Map, and Ba
 Class {
 	#name : 'ImmutableMap',
 	#superclass : 'ImmutableObject',
-	#traits : 'TImmutableSequence + TImmutableAddable',
-	#classTraits : 'TImmutableSequence classTrait + TImmutableAddable classTrait',
+	#traits : 'TImmutableEnumerable + TImmutableAddable',
+	#classTraits : 'TImmutableEnumerable classTrait + TImmutableAddable classTrait',
 	#instVars : [
 		'size',
 		'root'

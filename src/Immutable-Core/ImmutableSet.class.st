@@ -8,8 +8,8 @@ Inspired by Clojure's PersistentHashSet and immutable-ruby's Immutable::Set.
 Class {
 	#name : 'ImmutableSet',
 	#superclass : 'ImmutableObject',
-	#traits : 'TImmutableSequence + TImmutableAddable + TImmutableEnumerable',
-	#classTraits : 'TImmutableSequence classTrait + TImmutableAddable classTrait + TImmutableEnumerable classTrait',
+	#traits : 'TImmutableAddable + TImmutableEnumerable',
+	#classTraits : 'TImmutableAddable classTrait + TImmutableEnumerable classTrait',
 	#instVars : [
 		'map'
 	],
