@@ -109,7 +109,9 @@ sorted last.       "3"
 
 ```smalltalk
 queue := ImmutableQueue empty.
-queue := queue enqueue: 1; enqueue: 2; enqueue: 3.
+queue := queue enqueue: 1.
+queue := queue enqueue: 2.
+queue := queue enqueue: 3.
 result := queue dequeue.  "{1. queue(2 3)}"
 queue peek.               "1"
 ```
@@ -117,11 +119,20 @@ queue peek.               "1"
 ### Memoization
 
 ```smalltalk
-lazy := vec select: [:n | n even]; collect: [:n | n * 10].
+view := vec take: 4.
+lazy := view select: [ :n | n even ].
+lazy := lazy collect: [ :n | n * 10 ].
+
+"memoize traverses the source and caches it immediately."
 memoized := lazy memoize.
-memoized do: [:each | ...].  "Realizes and caches"
-memoized do: [:each | ...].  "Hits cache"
+
+memoized do: [ :each | ... ].  "Reads cache"
+memoized do: [ :each | ... ].  "Reads the same cache"
 ```
+
+`select:`, `collect:`, and `reject:` sent directly to an `ImmutableVector` are eager. `take:` and `drop:` can produce an `ImmutableSubVector`. Sequence transformations sent to that view remain lazy. 
+
+`memoize` eagerly traverses a lazy view and stores its result for repeated traversal.
 
 ## Traits
 
