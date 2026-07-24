@@ -47,6 +47,37 @@ Metacello new
 | `ImmutableSortedSet` | HAMT + sorted keys | O(log₃₂ n) lookup, ordered traversal |
 | `ImmutableQueue` | Two-stack | O(1) amortized enqueue/dequeue |
 
+## API Conventions
+
+### Indexing
+
+`ImmutableList`, `ImmutableVector`, and `ImmutableSubVector` use
+**zero-based indexes**, following their Clojure-inspired API rather than
+Smalltalk's usual one-based collection convention.
+
+- `at:` signals `SubscriptOutOfBounds` when the index is invalid.
+- `at:ifAbsent:` evaluates its block when the index is invalid.
+- Map `at:` messages use keys rather than numeric positions.
+
+### Nil values
+
+Collections support `nil` elements and map values.
+
+Use `isEmpty` to distinguish an empty sequence from a sequence whose first
+element is `nil`. `detect:` signals `NotFound` when no element matches;
+`detect:ifNone:` evaluates its fallback only when no element matches.
+
+### Ordering
+
+Lists and vectors preserve sequence order. Map and Set traversal order is
+unspecified and may change between versions. SortedMap and SortedSet use
+natural ordering through `<`.
+
+### Map snapshots
+
+`ImmutableMap>>keys` and `ImmutableMap>>values` return detached Arrays.
+Mutating these snapshots does not mutate the map.
+
 ## Quick Start
 
 ### Lists
