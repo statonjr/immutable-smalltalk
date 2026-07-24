@@ -167,12 +167,24 @@ ImmutableMap >> put: key value: value [
 
 { #category : 'initialization' }
 ImmutableMap >> removeKey: key [
-    | hash newRoot |
-    hash := key hash.
-    root ifNil: [^ self].
-    newRoot := root remove: key hash: hash shift: 0.
-    newRoot ifNil: [^ self class empty].
-    ^ self class basicNew initializeWithSize: size - 1 root: newRoot
+		| hash newRoot |
+      root ifNil: [ ^ self ].
+
+      hash := key hash.
+      newRoot := root
+                    remove: key
+                    hash: hash
+                    shift: 0.
+
+      "The HAMT removal protocol returns the original node when nothing
+      changed. Preserve both the map's size and its identity."
+      newRoot == root ifTrue: [ ^ self ].
+
+      newRoot ifNil: [ ^ self class empty ].
+
+      ^ self class basicNew
+           initializeWithSize: size - 1
+           root: newRoot
 ]
 
 { #category : 'initialization' }

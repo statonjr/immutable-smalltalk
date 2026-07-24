@@ -151,6 +151,22 @@ ImmutableMapTest >> testPutAndAt [
 ]
 
 { #category : 'tests' }
+ImmutableMapTest >> testRemoveAbsentKeyPreservesMap [
+		| original result |
+      original := ImmutableMap empty
+                     put: #present
+                     value: 42.
+
+      result := original removeKey: #absent.
+
+      self assert: result identicalTo: original.
+      self assert: result size equals: 1.
+      self deny: result isEmpty.
+      self assert: (result includesKey: #present).
+      self assert: (result at: #present) equals: 42
+]
+
+{ #category : 'tests' }
 ImmutableMapTest >> testRemoveKey [
     | map1 map2 |
     map1 := ImmutableMap empty put: #name value: 'Pharo'.
@@ -168,6 +184,25 @@ ImmutableMapTest >> testRemoveKeyToEmpty [
     map := ImmutableMap empty put: #name value: 'Pharo'.
     result := map removeKey: #name.
     self assert: result isEmpty
+]
+
+{ #category : 'tests' }
+ImmutableMapTest >> testRepeatedRemovalDoesNotChangeSize [
+		| original once twice |
+      original := ImmutableMap empty
+                     put: #first
+                     value: 1.
+      original := original
+                     put: #second
+                     value: 2.
+
+      once := original removeKey: #first.
+      twice := once removeKey: #first.
+
+      self assert: once size equals: 1.
+      self assert: twice identicalTo: once.
+      self assert: twice size equals: 1.
+      self assert: (twice at: #second) equals: 2
 ]
 
 { #category : 'tests' }
