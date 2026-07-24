@@ -42,31 +42,64 @@ HAMTLeafNode >> initializeWithHash: aHash key: aKey value: aValue [
 
 { #category : 'initialization' }
 HAMTLeafNode >> insert: aKey value: aValue hash: aHash shift: shift added: addedBlock [
-    "Same key - replace value"
-    | collisionNode existingBit newBit combinedBitmap existingIndex newIndex newChildren |
-    (hash = aHash and: [key = aKey]) ifTrue: [
-        addedBlock value: false.
-        ^ HAMTLeafNode new initializeWithHash: hash key: aKey value: aValue].
-    
-    "Same hash, different key - create collision node"
-    (hash = aHash) ifTrue: [
-        addedBlock value: true.
-        ^ HAMTCollisionNode new initializeWithHash: hash leaves: {
-            self.
-            HAMTLeafNode new initializeWithHash: aHash key: aKey value: aValue }].
+		| existingBit newBit combinedBitmap existingIndex newIndex newChildren nestedNode |
 
-	"Different hash - create bitmap node with both entries properly positioned"
-    existingBit := self bitForHash: hash shift: shift.
-    newBit := self bitForHash: aHash shift: shift.
-    combinedBitmap := existingBit bitOr: newBit.
-    existingIndex := (combinedBitmap bitAnd: existingBit - 1) bitCount.
-    newIndex := (combinedBitmap bitAnd: newBit - 1) bitCount.
-    newChildren := Array new: 2.
-    newChildren at: existingIndex + 1 put: self.
-    newChildren at: newIndex + 1 put: (HAMTLeafNode new 
-        initializeWithHash: aHash key: aKey value: aValue).
-    addedBlock value: true.
-    ^ HAMTBitmapNode new initializeWithBitmap: combinedBitmap children: newChildren
+      "Same key: replace its value."
+      (hash = aHash and: [ key = aKey ]) ifTrue: [
+         addedBlock value: false.
+         ^ HAMTLeafNode new
+              initializeWithHash: hash
+              key: aKey
+              value: aValue ].
+
+      "Different keys with the same complete hash require a collision node."
+      hash = aHash ifTrue: [
+         addedBlock value: true.
+         ^ HAMTCollisionNode new
+              initializeWithHash: hash
+              leaves: {
+                    self.
+                    (HAMTLeafNode new
+                        initializeWithHash: aHash
+                        key: aKey
+                        value: aValue) } ].
+
+      existingBit := self bitForHash: hash shift: shift.
+      newBit := self bitForHash: aHash shift: shift.
+
+      "The hashes differ, but this 5-bit chunk is the same.
+      Add another trie level and continue until they diverge."
+      existingBit = newBit ifTrue: [
+         nestedNode := self
+                          insert: aKey
+                          value: aValue
+                          hash: aHash
+                          shift: shift + 5
+                          added: addedBlock.
+
+         ^ HAMTBitmapNode new
+              initializeWithBitmap: existingBit
+              children: { nestedNode } ].
+
+      "The current chunks differ, so both leaves can occupy this level."
+      combinedBitmap := existingBit bitOr: newBit.
+      existingIndex := (combinedBitmap bitAnd: existingBit - 1) bitCount.
+      newIndex := (combinedBitmap bitAnd: newBit - 1) bitCount.
+
+      newChildren := Array new: 2.
+      newChildren at: existingIndex + 1 put: self.
+      newChildren
+         at: newIndex + 1
+         put: (HAMTLeafNode new
+                initializeWithHash: aHash
+                key: aKey
+                value: aValue).
+
+      addedBlock value: true.
+
+      ^ HAMTBitmapNode new
+           initializeWithBitmap: combinedBitmap
+           children: newChildren
 ]
 
 { #category : 'accessing' }

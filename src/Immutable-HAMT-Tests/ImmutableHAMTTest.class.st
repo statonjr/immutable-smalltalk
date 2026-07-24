@@ -303,6 +303,55 @@ ImmutableHAMTTest >> testLeafNodeRemove [
 ]
 
 { #category : 'tests' }
+ImmutableHAMTTest >> testLeafSplitCanRecurseThroughMultipleSharedChunks [
+	
+	| leaf result |
+      leaf := HAMTLeafNode new
+                 initializeWithHash: 1
+                 key: #shallow
+                 value: 'Shallow'.
+
+      "1 and 1025 share their shift-0 and shift-5 chunks.
+      They first diverge at shift 10."
+      result := leaf
+                   insert: #deep
+                   value: 'Deep'
+                   hash: 1025
+                   shift: 0
+                   added: [ :added | self assert: added ].
+
+      self assert: (result lookup: #shallow hash: 1 shift: 0) value equals: 'Shallow'.
+      self assert: (result lookup: #deep hash: 1025 shift: 0) value equals: 'Deep'.
+]
+
+{ #category : 'tests' }
+ImmutableHAMTTest >> testLeafSplitRecursesWhenHashesShareCurrentChunk [
+
+      | leaf result entries |
+      leaf := HAMTLeafNode new
+                 initializeWithHash: 1
+                 key: #first
+                 value: 'First'.
+
+      result := leaf
+                   insert: #second
+                   value: 'Second'
+                   hash: 33
+                   shift: 0
+                   added: [ :added | self assert: added ].
+
+      self assert: (result lookup: #first hash: 1 shift: 0) value equals: 'First'.
+      self assert: (result lookup: #second hash: 33 shift: 0) value equals: 'Second'.
+
+      entries := OrderedCollection new.
+      result do: [ :each | entries add: each ].
+
+      self assert: entries size equals: 2.
+      self assert: (entries anySatisfy: [ :each | each key = #first ]).
+      self assert: (entries anySatisfy: [ :each | each key = #second ])
+]
+
+{ #category : 'tests' }
 ImmutableHAMTTest >> testModifyingImmutableNodeRaisesError [
     | leaf |
     leaf := HAMTLeafNode new initializeWithHash: 42 key: #name value: 'Pharo'.
