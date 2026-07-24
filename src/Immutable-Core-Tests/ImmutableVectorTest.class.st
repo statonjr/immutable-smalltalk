@@ -133,6 +133,21 @@ ImmutableVectorTest >> testLargeVector [
 ]
 
 { #category : 'tests' }
+ImmutableVectorTest >> testMultipleRootGrowthLevels [
+
+	| vec |
+      vec := ImmutableVector empty.
+
+      1 to: 100000 do: [ :i | vec := vec add: i ].
+
+      self assert: vec size equals: 100000.
+
+      #(1 32 33 1024 1025 1056 1057 32768 32800 32801 100000)
+         do: [ :i |
+            self assert: (vec at: i - 1) equals: i ]
+]
+
+{ #category : 'tests' }
 ImmutableVectorTest >> testRest [
     | vec rest |
     vec := ImmutableVector fromArray: #(1 2 3).
@@ -140,6 +155,20 @@ ImmutableVectorTest >> testRest [
     self assert: rest size equals: 2.
     self assert: (rest at: 0) equals: 2.
     self assert: (rest at: 1) equals: 3
+]
+
+{ #category : 'accessing' }
+ImmutableVectorTest >> testRootGrowthPreservesValues [
+
+	| vec |
+      vec := ImmutableVector empty.
+
+      1 to: 1057 do: [ :i | vec := vec add: i ].
+
+      self assert: vec size equals: 1057.
+
+      1 to: 1057 do: [ :i |
+         self assert: (vec at: i - 1) equals: i ].
 ]
 
 { #category : 'tests' }

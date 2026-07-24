@@ -61,27 +61,41 @@ ImmutableVector class >> withAll: aCollection [
 
 { #category : 'enumerating' }
 ImmutableVector >> add: anObject [
-    "Append — O(1) amortized"
-    | newTail newRoot newSize |
-    tail size < 32 ifTrue: [
-        newTail := tail copyWith: anObject.
-        newRoot := root.
-        newSize := size + 1.
-        ^ self class basicNew 
-            initializeWithSize: newSize 
-            shift: shift 
-            root: newRoot 
-            tail: newTail].
-    
-    "Tail full — promote to tree"
-    newRoot := self promoteTail: tail intoRoot: root.
-    newTail := Array with: anObject.
-    newSize := size + 1.
-    ^ self class basicNew 
-        initializeWithSize: newSize 
-        shift: shift 
-        root: newRoot 
-        tail: newTail
+    | newTail newRoot newSize newShift |
+
+      "Append to the existing tail while it has capacity."
+      tail size < self branchingFactor ifTrue: [
+         newTail := tail copyWith: anObject.
+
+         ^ self class basicNew
+              initializeWithSize: size + 1
+              shift: shift
+              root: root
+              tail: newTail ].
+
+      "The tail is full and must be promoted into the tree."
+      newRoot := root.
+      newShift := shift.
+
+      "The current root is full. Introduce a new root above it."
+      ((size >> self bitShift) > (1 << shift)) ifTrue: [
+         newRoot := Array new: self branchingFactor.
+         newRoot at: 1 put: root.
+         newShift := shift + self bitShift ].
+
+      newRoot := self
+                    promoteTail: tail
+                    intoRoot: newRoot
+                    shift: newShift.
+
+      newTail := Array with: anObject.
+      newSize := size + 1.
+
+      ^ self class basicNew
+           initializeWithSize: newSize
+           shift: newShift
+           root: newRoot
+           tail: newTail
 ]
 
 { #category : 'private' }
@@ -288,17 +302,19 @@ ImmutableVector >> printOn: aStream [
 ]
 
 { #category : 'private' }
-ImmutableVector >> promoteTail: aTail intoRoot: aRoot [
-    | newRoot tailStart |
-    newRoot := aRoot.
-    tailStart := size - aTail size.
-    aTail doWithIndex: [:element :i |
-        newRoot := self 
-            insertElement: element 
-            intoRoot: newRoot 
-            atIndex: tailStart + i - 1 
-            shift: shift].
-    ^ newRoot
+ImmutableVector >> promoteTail: aTail intoRoot: aRoot shift: aShift [
+		| newRoot tailStart |
+      newRoot := aRoot.
+      tailStart := size - aTail size.
+
+      aTail doWithIndex: [ :element :i |
+         newRoot := self
+                       insertElement: element
+                       intoRoot: newRoot
+                       atIndex: tailStart + i - 1
+                       shift: aShift ].
+
+      ^ newRoot
 ]
 
 { #category : 'initialization' }
