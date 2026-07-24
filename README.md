@@ -49,6 +49,17 @@ Metacello new
 
 ## API Conventions
 
+### Equality and hashing
+
+Immutable collections use value equality within their semantic families:
+
+- Lists, Vectors, SubVectors, and lazy/memoized sequence views compare by elements and order.
+- Maps and SortedMaps compare by key/value mappings, independent of traversal order.
+- Sets and SortedSets compare by membership, independent of traversal order.
+- Queues compare by FIFO order and only compare equal to other Queues.
+
+Immutable collections do not compare equal to Pharo's mutable built-in collections. Equal immutable collections always produce equal hashes and may be used interchangeably as Dictionary keys.
+
 ### Indexing
 
 `ImmutableList`, `ImmutableVector`, and `ImmutableSubVector` use
