@@ -6,11 +6,23 @@ Class {
 }
 
 { #category : 'tests' }
+ImmutableListTest >> testAddAllPreservesOrder [
+
+		| list result |
+      list := ImmutableList fromArray: #(1 2 3).
+      result := list addAll: #(4 5 6).
+
+      self assert: result asArray equals: #(1 2 3 4 5 6)
+]
+
+{ #category : 'tests' }
 ImmutableListTest >> testAddToEnd [
-    | list result |
-    list := ImmutableList fromArray: #(1 2 3).
-    result := list add: 4.
-    self assert: result asArray equals: #(4 1 2 3)
+
+		| list result |
+      list := ImmutableList fromArray: #(1 2 3).
+      result := list add: 4.
+
+      self assert: result asArray equals: #(1 2 3 4)
 ]
 
 { #category : 'tests' }
@@ -81,7 +93,17 @@ ImmutableListTest >> testCollect [
     | list result |
     list := ImmutableList fromArray: #(1 2 3).
     result := list collect: [:n | n * 10].
-    self assert: result asArray equals: #(30 20 10)
+    self assert: result asArray equals: #(10 20 30)
+]
+
+{ #category : 'tests' }
+ImmutableListTest >> testCommaAppendsCollectionInOrder [
+
+		| list result |
+      list := ImmutableList fromArray: #(1 2 3).
+      result := list , #(4 5 6).
+
+      self assert: result asArray equals: #(1 2 3 4 5 6)
 ]
 
 { #category : 'tests' }
@@ -186,7 +208,7 @@ ImmutableListTest >> testReject [
     | list result |
     list := ImmutableList fromArray: #(1 2 3 4 5).
     result := list reject: [:n | n even].
-    self assert: result asArray equals: #(5 3 1)
+    self assert: result asArray equals: #(1 3 5)
 ]
 
 { #category : 'tests' }
@@ -210,7 +232,7 @@ ImmutableListTest >> testSelect [
     | list result |
     list := ImmutableList fromArray: #(1 2 3 4 5 6).
     result := list select: [:n | n even].
-    self assert: result asArray equals: #(6 4 2)
+    self assert: result asArray equals: #(2 4 6)
 ]
 
 { #category : 'tests' }
@@ -237,5 +259,5 @@ ImmutableListTest >> testTake [
 ImmutableListTest >> testTakeWhile [
     | list |
     list := ImmutableList fromArray: #(1 2 3 4 5).
-    self assert: (list takeWhile: [:n | n < 4]) asArray equals: #(3 2 1)
+    self assert: (list takeWhile: [:n | n < 4]) asArray equals: #(1 2 3)
 ]

@@ -58,9 +58,9 @@ ImmutableList class >> withAll: aCollection [
     ^ self fromArray: aCollection asArray
 ]
 
-{ #category : 'accessing' }
+{ #category : 'adding' }
 ImmutableList >> add: anObject [
-    ^ self cons: anObject
+    ^ self append: (self class with: anObject)
 ]
 
 { #category : 'accessing' }
@@ -100,6 +100,18 @@ ImmutableList >> at: index [
 ImmutableList >> car [
     self isEmpty ifTrue: [^ nil].
     ^ head
+]
+
+{ #category : 'enumerating' }
+ImmutableList >> collect: aBlock [
+
+		| result |
+      result := self class empty.
+
+      self do: [ :each |
+         result := result cons: (aBlock value: each) ].
+
+      ^ result reverse
 ]
 
 { #category : 'initialization' }
@@ -187,6 +199,19 @@ ImmutableList >> reverseDo: aBlock [
     self isEmpty ifTrue: [^ self].
     self rest reverseDo: aBlock.
     aBlock value: self first
+]
+
+{ #category : 'enumerating' }
+ImmutableList >> select: aBlock [
+
+		| result |
+      result := self class empty.
+
+      self do: [ :each |
+         (aBlock value: each) ifTrue: [
+            result := result cons: each ] ].
+
+      ^ result reverse
 ]
 
 { #category : 'accessing' }
