@@ -29,6 +29,79 @@ ImmutableBenchmarks class >> compare: labelA block: blockA with: labelB block: b
         cr; cr
 ]
 
+{ #category : 'defaults' }
+ImmutableBenchmarks class >> defaultSampleCount [
+
+	^ 9
+]
+
+{ #category : 'benchmarking' }
+ImmutableBenchmarks class >> isAbstractClass [ 
+
+	^ true
+]
+
+{ #category : 'statistics' }
+ImmutableBenchmarks class >> medianOf: numbers [
+
+      | sorted middle |
+      sorted := numbers sorted.
+      middle := (sorted size + 1) // 2.
+
+      sorted size odd ifTrue: [
+         ^ sorted at: middle ].
+
+      ^ ((sorted at: middle) + (sorted at: middle + 1)) / 2.0
+]
+
+{ #category : 'reporting' }
+ImmutableBenchmarks class >> reportResults: runner [
+
+      | metadata |
+      metadata := self benchmarkMetadata.
+
+      metadata keys sorted do: [ :benchmark |
+         | results times median minimum maximum specification
+           operationCount unit operationsPerSecond |
+
+         results := runner results at: benchmark.
+         times := results collect: [ :result | result total ].
+
+         median := self medianOf: times.
+         minimum := times min.
+         maximum := times max.
+
+         specification := metadata at: benchmark.
+         operationCount := specification first.
+         unit := specification second.
+
+			median <= 0
+            ifTrue: [
+               Transcript
+                  show: benchmark asString;
+                  show: ': below timer resolution, samples ';
+                  show: times printString;
+                  cr ]
+            ifFalse: [
+               operationsPerSecond :=
+                  operationCount * 1000.0 / median.
+
+               Transcript
+                  show: benchmark asString;
+                  show: ': median ';
+                  show: median printString;
+                  show: ' ms, range ';
+                  show: minimum printString;
+                  show: '–';
+                  show: maximum printString;
+                  show: ' ms, ';
+                  show: operationsPerSecond rounded printString;
+                  space;
+                  show: unit;
+                  show: '/s';
+                  cr ] ]
+]
+
 { #category : 'running' }
 ImmutableBenchmarks class >> run: label iterations: n block: aBlock [
     | start elapsed result |
@@ -57,6 +130,16 @@ ImmutableBenchmarks class >> runAll [
 	self runSetBenchmarks.
 	self runSortedBenchmarks.
 	self runVectorBenchmarks.
+]
+
+{ #category : 'running' }
+ImmutableBenchmarks class >> runAndReport [
+
+      | runner |
+      runner := self run: self defaultSampleCount.
+      self reportResults: runner.
+
+      ^ runner
 ]
 
 { #category : 'running' }
