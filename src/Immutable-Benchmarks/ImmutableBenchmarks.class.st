@@ -30,6 +30,12 @@ ImmutableBenchmarks class >> compare: labelA block: blockA with: labelB block: b
 ]
 
 { #category : 'defaults' }
+ImmutableBenchmarks class >> defaultRunner [
+
+      ^ ImmutableBenchmarkRunner
+]
+
+{ #category : 'defaults' }
 ImmutableBenchmarks class >> defaultSampleCount [
 
 	^ 9
