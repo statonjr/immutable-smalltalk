@@ -15,7 +15,7 @@ Class {
 	#package : 'Immutable-HAMT'
 }
 
-{ #category : 'as yet unclassified' }
+{ #category : 'accessing' }
 HAMTLeafNode >> bitForHash: aHash shift: shift [
     | index |
     index := ((aHash >> shift) bitAnd: 31) + 1.
