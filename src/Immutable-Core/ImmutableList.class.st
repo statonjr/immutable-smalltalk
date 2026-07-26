@@ -5,7 +5,7 @@ O(1) prepend via cons:, O(n) append via add:.
  
 I implement the TImmutableSequence trait providing Lisp-style accessors:  car, cdr, cadr, caddr, take:, drop:, reverse, etc.
  
-Inspired by Clojure's PersistentList and immutable-ruby's Immutable::List.""
+Inspired by Clojure's PersistentList and immutable-ruby's Immutable::List.
 "
 Class {
 	#name : 'ImmutableList',

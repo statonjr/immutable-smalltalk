@@ -1,12 +1,12 @@
 "
-""I provide iteration and query methods for immutable collections.
+I provide iteration and query methods for immutable collections.
  
- Requires: do:, isEmpty
- Provides: select:, reject:, collect:, detect:, detect:ifNone:,
-           includes:, anySatisfy:, allSatisfy:, noneSatisfy:,
-           inject:into:, size, asArray, isNotEmpty
+Requires: do:, isEmpty
+Provides: select:, reject:, collect:, detect:, detect:ifNone:,
+          includes:, anySatisfy:, allSatisfy:, noneSatisfy:,
+          inject:into:, size, asArray, isNotEmpty
  
- Stateless trait — all behavior, no instance variables.""
+Stateless trait — all behavior, no instance variables.
 "
 Trait {
 	#name : 'TImmutableEnumerable',
