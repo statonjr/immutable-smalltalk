@@ -39,21 +39,6 @@ ImmutableBenchmarks class >> benchmarkSuites [
         }
 ]
 
-{ #category : 'comparing' }
-ImmutableBenchmarks class >> compare: labelA block: blockA with: labelB block: blockB iterations: n [
-    | resultA resultB ratio |
-    resultA := self run: labelA iterations: n block: blockA.
-    resultB := self run: labelB iterations: n block: blockB.
-    ratio := resultB period / resultA period.
-    Transcript
-        show: '  Ratio: ';
-        show: (ratio asFloat roundTo: 0.01) printString;
-        show: 'x (';
-        show: (ratio > 1 ifTrue: ['Immutable faster'] ifFalse: ['Built-in faster']);
-        show: ')';
-        cr; cr
-]
-
 { #category : 'defaults' }
 ImmutableBenchmarks class >> defaultRunner [
 
