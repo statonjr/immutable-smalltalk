@@ -23,6 +23,22 @@ Class {
 	#package : 'Immutable-Benchmarks'
 }
 
+{ #category : 'benchmarking' }
+ImmutableBenchmarks class >> benchmarkSuites [
+
+      ^ {
+           ImmutableMapBenchmarks.
+           ImmutableVectorBenchmarks.
+           ImmutableConstructionBenchmarks.
+           ImmutableStructuralSharingBenchmarks.
+           ImmutableViewBenchmarks.
+           ImmutableSequenceBenchmarks.
+           ImmutableSetBenchmarks.
+           ImmutableQueueBenchmarks.
+           ImmutableSortedBenchmarks
+        }
+]
+
 { #category : 'comparing' }
 ImmutableBenchmarks class >> compare: labelA block: blockA with: labelB block: blockB iterations: n [
     | resultA resultB ratio |
@@ -50,6 +66,16 @@ ImmutableBenchmarks class >> defaultSampleCount [
 	^ 9
 ]
 
+{ #category : 'private' }
+ImmutableBenchmarks class >> environmentValueFrom: object
+      selector: selector
+      ifAbsent: fallback [
+
+      ^ (object respondsTo: selector)
+           ifTrue: [ object perform: selector ]
+           ifFalse: [ fallback ]
+]
+
 { #category : 'benchmarking' }
 ImmutableBenchmarks class >> isAbstractClass [ 
 
@@ -70,579 +96,140 @@ ImmutableBenchmarks class >> medianOf: numbers [
 ]
 
 { #category : 'reporting' }
-ImmutableBenchmarks class >> reportResults: runner [
+ImmutableBenchmarks class >> reportEnvironment [
 
-      | metadata |
-      metadata := self benchmarkMetadata.
+	| image operatingSystem architecture wordSize |
+	image := SmalltalkImage current.
 
-      metadata keys sorted do: [ :benchmark |
-         | results times median minimum maximum specification
-           operationCount unit operationsPerSecond |
+	operatingSystem := OSPlatform current.
 
-         results := runner results at: benchmark.
-         times := results collect: [ :result | result total ].
+	architecture := operatingSystem processorArchitecture.
 
-         median := self medianOf: times.
-         minimum := times min.
-         maximum := times max.
+	wordSize := image wordSize.
 
-         specification := metadata at: benchmark.
-         operationCount := specification first.
-         unit := specification second.
-
-			median <= 0
-            ifTrue: [
-               Transcript
-                  show: benchmark asString;
-                  show: ': below timer resolution, samples ';
-                  show: times printString;
-                  cr ]
-            ifFalse: [
-               operationsPerSecond :=
-                  operationCount * 1000.0 / median.
-
-               Transcript
-                  show: benchmark asString;
-                  show: ': median ';
-                  show: median printString;
-                  show: ' ms, range ';
-                  show: minimum printString;
-                  show: '–';
-                  show: maximum printString;
-                  show: ' ms, ';
-                  show: operationsPerSecond rounded printString;
-                  space;
-                  show: unit;
-                  show: '/s';
-                  cr ] ]
+	Transcript
+		show: '=== Immutable Collections Benchmark Environment ===';
+		cr;
+		show: 'Timestamp: ';
+		show: DateAndTime now printString;
+		cr;
+		show: 'Pharo: ';
+		show: SystemVersion current asString;
+		cr;
+		show: 'VM: ';
+		show: (self environmentValueFrom: Smalltalk vm selector: #version ifAbsent: 'unknown') asString;
+		cr;
+		show: 'OS: ';
+		show: (self environmentValueFrom: operatingSystem selector: #platformName ifAbsent: operatingSystem class name) asString;
+		cr;
+		show: 'Architecture: ';
+		show: architecture asString;
+		cr;
+		show: 'Word size: ';
+		show: wordSize asString;
+		cr;
+		show: 'Runner: ';
+		show: ImmutableBenchmarkRunner name;
+		cr;
+		show: 'Timer: ';
+		show: ImmutableBenchmarkTimer name;
+		cr;
+		show: 'Warmup executions: 2';
+		cr;
+		show: 'Recorded samples: ';
+		show: self defaultSampleCount printString;
+		cr;
+		cr
 ]
 
-{ #category : 'running' }
-ImmutableBenchmarks class >> run: label iterations: n block: aBlock [
-    | start elapsed result |
-    start := DateAndTime now.
-    n timesRepeat: aBlock.
-    elapsed := DateAndTime now - start.
-    result := BenchmarkResult new
-        iterations: n;
-        elapsedTime: elapsed;
-        yourself.
-    Transcript
-        show: label;
-        show: ': ';
-        show: result printString;
-        cr.
-    ^ result
+{ #category : 'reporting' }
+ImmutableBenchmarks class >> reportResults: runner [
+
+	| metadata |
+	metadata := self benchmarkMetadata.
+
+	metadata keys sorted do: [ :benchmark |
+			| results times median minimum maximum specification operationCount unit operationsPerSecond spreadPercent |
+			results := runner results at: benchmark.
+			times := results collect: [ :result | result total ].
+
+			median := self medianOf: times.
+			minimum := times min.
+			maximum := times max.
+
+			specification := metadata at: benchmark.
+			operationCount := specification first.
+			unit := specification second.
+
+			median <= 0
+				ifTrue: [
+						Transcript
+							show: benchmark asString;
+							show: ': below timer resolution, samples ';
+							show: times printString;
+							cr ]
+				ifFalse: [
+						operationsPerSecond := operationCount * 1000.0 / median.
+
+						spreadPercent := maximum - minimum / median * 100.0.
+
+						Transcript
+							show: benchmark asString;
+							show: ': median ';
+							show: (median printShowingDecimalPlaces: 3);
+							show: ' ms, range ';
+							show: (minimum printShowingDecimalPlaces: 3);
+							show: '-';
+							show: (maximum printShowingDecimalPlaces: 3);
+							show: ' ms, spread ';
+							show: (spreadPercent printShowingDecimalPlaces: 2);
+							show: '%, ';
+							show: operationCount printString;
+							space;
+							show: unit;
+							show: ', ';
+							show: operationsPerSecond rounded printString;
+							space;
+							show: unit;
+							show: '/s';
+							cr ] ]
 ]
 
 { #category : 'running' }
 ImmutableBenchmarks class >> runAll [
-	self runLazyViewBenchmarks.
-	self runListBenchmarks.
-	self runMapBenchmarks.
-	self runMemoizedBenchmarks.
-	self runQueueBenchmarks.
-	self runSetBenchmarks.
-	self runSortedBenchmarks.
-	self runVectorBenchmarks.
+
+      | runners |
+      self reportEnvironment.
+      runners := Dictionary new.
+
+      self benchmarkSuites do: [ :suite |
+         runners
+            at: suite name
+            put: suite runAndReportSuite ].
+
+      ^ runners
 ]
 
 { #category : 'running' }
 ImmutableBenchmarks class >> runAndReport [
 
+      self reportEnvironment.
+      ^ self runAndReportSuite
+]
+
+{ #category : 'reporting' }
+ImmutableBenchmarks class >> runAndReportSuite [
+
       | runner |
+      Transcript
+         show: '=== ';
+         show: self name;
+         show: ' ===';
+         cr.
+
       runner := self run: self defaultSampleCount.
       self reportResults: runner.
+      Transcript cr.
 
       ^ runner
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runLazyViewBenchmarks [
-    | vec |
-      Transcript
-         show: '=== Lazy View Benchmarks ===';
-         cr.
-
-      vec := ImmutableVector fromArray: (1 to: 10000) asArray.
-
-      self
-         run: '  Lazy chain + first only (10k)   '
-         iterations: 10000
-         block: [
-            | result |
-            result := vec drop: 100.
-            result := result take: 5000.
-            result := result select: [ :n | n even ].
-            result := result collect: [ :n | n * 10 ].
-            result first ].
-
-      self
-         run: '  Eager chain + first only (10k)  '
-         iterations: 100
-         block: [
-            | result |
-            result := (vec drop: 100) asImmutableVector.
-            result := (result take: 5000) asImmutableVector.
-            result := result select: [ :n | n even ].
-            result := result collect: [ :n | n * 10 ].
-            result first ].
-
-      self
-         run: '  Lazy chain + full traversal (10k)'
-         iterations: 10
-         block: [
-            | result sum |
-            result := vec drop: 100.
-            result := result take: 5000.
-            result := result select: [ :n | n even ].
-            result := result collect: [ :n | n * 10 ].
-
-            sum := 0.
-            result do: [ :each |
-               sum := sum + each ] ].
-
-      self
-         run: '  Eager chain + full traversal (10k)'
-         iterations: 10
-         block: [
-            | result sum |
-            result := (vec drop: 100) asImmutableVector.
-            result := (result take: 5000) asImmutableVector.
-            result := result select: [ :n | n even ].
-            result := result collect: [ :n | n * 10 ].
-
-            sum := 0.
-            result do: [ :each |
-               sum := sum + each ] ].
-
-		Transcript cr.
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runListBenchmarks [
-    | smallList smallArray |
-    
-    Transcript show: '=== List Benchmarks ==='; cr.
-    
-    smallList := ImmutableList fromArray: (1 to: 100) asArray.
-    smallArray := (1 to: 100) asArray.
-    
-    "Prepend"
-    self run: '  ImmutableList cons: 10            ' iterations: 10000 block: [
-        | l |
-        l := smallList.
-        1 to: 10 do: [:i | l := l cons: i]].
-    
-    self run: '  OrderedCollection addFirst: 10    ' iterations: 10000 block: [
-        | oc |
-        oc := smallArray asOrderedCollection.
-        1 to: 10 do: [:i | oc addFirst: i]].
-    
-    Transcript cr.
-    
-    "Sequence operations"
-    self run: '  ImmutableList take: 50             ' iterations: 10000 block: [
-        smallList take: 50].
-    
-    self run: '  ImmutableList drop: 50             ' iterations: 10000 block: [
-        smallList drop: 50].
-    
-    self run: '  ImmutableList reverse              ' iterations: 10000 block: [
-        smallList reverse].
-    
-    self run: '  Array reverse (copy)               ' iterations: 10000 block: [
-        smallArray reverse].
-    
-    Transcript cr.
-    
-    "Car/cdr chain"
-    self run: '  ImmutableList car/cdr chain (10)   ' iterations: 10000 block: [
-        | l |
-        l := smallList.
-        1 to: 10 do: [:i | l := l cdr].
-        l car].
-    
-    Transcript cr.
-    
-    "Structural sharing: branching"
-    self run: '  ImmutableList 10 branches (100)   ' iterations: 1000 block: [
-        | branches |
-        branches := (1 to: 10) collect: [:i | smallList cons: i]].
-    
-    self run: '  Array 10 copies (100)             ' iterations: 100 block: [
-        | copies |
-        copies := (1 to: 10) collect: [:i | | a |
-            a := smallArray copy.
-            a := {i}, a]].
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runMapBenchmarks [
-    | smallImmutable largeImmutable smallDict largeDict keys |
-    
-    Transcript show: '=== Map Benchmarks ==='; cr.
-    
-    smallImmutable := ImmutableMap empty.
-    1 to: 100 do: [:i | smallImmutable := smallImmutable put: i value: i * 2].
-    smallDict := Dictionary new.
-    1 to: 100 do: [:i | smallDict at: i put: i * 2].
-    
-    largeImmutable := ImmutableMap empty.
-    1 to: 100000 do: [:i | largeImmutable := largeImmutable put: i value: i * 2].
-    largeDict := Dictionary new.
-    1 to: 100000 do: [:i | largeDict at: i put: i * 2].
-    
-    keys := (1 to: 100) asArray.
-    
-    self compare: '  ImmutableMap at: (100)' block: [keys do: [:k | smallImmutable at: k]]
-        with: '  Dictionary at: (100)   ' block: [keys do: [:k | smallDict at: k]]
-        iterations: 1000.
-    
-    keys := (1 to: 1000) collect: [:i | (i * 97) % 100000 + 1].
-    self compare: '  ImmutableMap at: (100k)' block: [keys do: [:k | largeImmutable at: k]]
-        with: '  Dictionary at: (100k)   ' block: [keys do: [:k | largeDict at: k]]
-        iterations: 100.
-    
-    self run: '  ImmutableMap building (1000)' iterations: 10 block: [
-        | m |
-        m := ImmutableMap empty.
-        1 to: 1000 do: [:i | m := m put: i value: i]].
-    self run: '  Dictionary building (1000)   ' iterations: 10 block: [
-        | d |
-        d := Dictionary new.
-        1 to: 1000 do: [:i | d at: i put: i]]
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runMemoizedBenchmarks [
-    | vec lazy memoized |
-      Transcript
-         show: '=== Memoized View Benchmarks ===';
-         cr.
-
-      vec := ImmutableVector fromArray: (1 to: 10000) asArray.
-
-      "drop: creates a lazy sub-vector without removing any matching
-      even values from the benchmark."
-      lazy := (vec drop: 1) select: [ :n | n even ].
-      lazy := lazy collect: [ :n | n * 10 ].
-
-      self
-         run: '  Lazy traversal, recomputed (10k) '
-         iterations: 10
-         block: [
-            | sum |
-            sum := 0.
-            lazy do: [ :each |
-               sum := sum + each ] ].
-
-      self
-         run: '  Memoize: realize and cache (10k) '
-         iterations: 10
-         block: [
-            lazy memoize ].
-
-      memoized := lazy memoize.
-
-      self
-         run: '  Memoized cached traversal (10k) '
-         iterations: 100
-         block: [
-            | sum |
-            sum := 0.
-            memoized do: [ :each |
-               sum := sum + each ] ].
-
-      self
-         run: '  Eager build and traversal (10k) '
-         iterations: 100
-         block: [
-            | result sum |
-            result := vec select: [ :n | n even ].
-            result := result collect: [ :n | n * 10 ].
-
-            sum := 0.
-            result do: [ :each |
-               sum := sum + each ] ].
-
-	 	Transcript cr.
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runQueueBenchmarks [
-    | queue |
-    
-    Transcript show: '=== Queue Benchmarks ==='; cr.
-    
-    queue := ImmutableQueue empty.
-    1 to: 1000 do: [:i | queue := queue enqueue: i].
-    
-    self run: '  Queue enqueue (1000)             ' iterations: 100 block: [
-        | q |
-        q := ImmutableQueue empty.
-        1 to: 100 do: [:i | q := q enqueue: i]].
-    
-    self run: '  Queue dequeue all (1000)         ' iterations: 10 block: [
-        | q result |
-        q := queue.
-        1 to: 1000 do: [:i |
-            result := q dequeue.
-            q := result second]].
-    
-    self run: '  Queue peek                       ' iterations: 100000 block: [
-        queue peek].
-    
-    self run: '  Queue enqueue/dequeue mix         ' iterations: 100 block: [
-        | q result |
-        q := ImmutableQueue empty.
-        1 to: 50 do: [:i | q := q enqueue: i].
-        1 to: 25 do: [:i |
-            result := q dequeue.
-            q := result second].
-        1 to: 25 do: [:i | q := q enqueue: i]].
-    
-    "Structural sharing: branch from same queue"
-    self run: '  Queue 10 branches (1000)         ' iterations: 100 block: [
-        | branches |
-        branches := (1 to: 10) collect: [:i | queue enqueue: i]].
-    
-    Transcript cr
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runSetBenchmarks [
-    | immSet smallSet items |
-    
-    Transcript show: '=== Set Benchmarks ==='; cr.
-    
-    immSet := ImmutableSet fromArray: (1 to: 500) asArray.
-    smallSet := (1 to: 500) asSet.
-    items := (1 to: 100) asArray.
-    
-    "Lookup"
-    self compare: '  ImmutableSet includes:          ' block: [
-        items do: [:i | immSet includes: i]]
-        with: '  Set includes:                   ' block: [
-        items do: [:i | smallSet includes: i]]
-        iterations: 10000.
-    
-    "Building"
-    self compare: '  ImmutableSet building (500)   ' block: [
-        | s |
-        s := ImmutableSet empty.
-        1 to: 500 do: [:i | s := s add: i]]
-        with: '  Set building (500)             ' block: [
-        | s |
-        s := Set new.
-        1 to: 500 do: [:i | s add: i]]
-        iterations: 100.
-    
-    "Set operations"
-    self run: '  ImmutableSet union                ' iterations: 1000 block: [
-        immSet union: (ImmutableSet fromArray: (400 to: 900) asArray)].
-    
-    self run: '  ImmutableSet intersection         ' iterations: 1000 block: [
-        immSet intersection: (ImmutableSet fromArray: (400 to: 900) asArray)].
-    
-    self run: '  ImmutableSet difference           ' iterations: 1000 block: [
-        immSet difference: (ImmutableSet fromArray: (400 to: 900) asArray)].
-    
-    Transcript cr.
-    
-    "Structural sharing: single add"
-    self run: '  ImmutableSet single add (500)     ' iterations: 1000 block: [
-        immSet add: 999].
-    
-    self run: '  Set copy + add (500)             ' iterations: 100 block: [
-        | s2 |
-        s2 := smallSet copy.
-        s2 add: 999]
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runSortedBenchmarks [
-    | immSortedMap immSortedSet dict set items |
-    
-    Transcript show: '=== Sorted Map Benchmarks ==='; cr.
-    
-    "SortedMap vs Dictionary"
-    immSortedMap := ImmutableSortedMap empty.
-    1 to: 500 do: [:i | immSortedMap := immSortedMap put: i value: i * 2].
-    dict := Dictionary new.
-    1 to: 500 do: [:i | dict at: i put: i * 2].
-    items := (1 to: 100) asArray.
-    
-    self compare: '  SortedMap at: (500)           ' block: [
-        items do: [:i | immSortedMap at: i]]
-        with: '  Dictionary at: (500)           ' block: [
-        items do: [:i | dict at: i]]
-        iterations: 1000.
-    
-    self run: '  SortedMap building (500)         ' iterations: 10 block: [
-        | m |
-        m := ImmutableSortedMap empty.
-        1 to: 500 do: [:i | m := m put: i value: i]].
-    
-    self run: '  SortedMap keys (ordered)          ' iterations: 100 block: [
-        immSortedMap keys].
-    
-    self run: '  SortedMap keysAndValuesDo:        ' iterations: 100 block: [
-        immSortedMap keysAndValuesDo: [:k :v | k + v]].
-    
-    Transcript cr.
-    
-    "SortedSet vs Set"
-    Transcript show: '=== Sorted Set Benchmarks ==='; cr.
-    
-    immSortedSet := ImmutableSortedSet fromArray: (1 to: 500) asArray.
-    set := (1 to: 500) asSet.
-    
-    self compare: '  SortedSet includes: (500)      ' block: [
-        items do: [:i | immSortedSet includes: i]]
-        with: '  Set includes: (500)            ' block: [
-        items do: [:i | set includes: i]]
-        iterations: 1000.
-    
-    self run: '  SortedSet building (500)        ' iterations: 10 block: [
-        | s |
-        s := ImmutableSortedSet empty.
-        1 to: 500 do: [:i | s := s add: i]].
-    
-    self run: '  SortedSet first/last             ' iterations: 10000 block: [
-        immSortedSet first.
-        immSortedSet last].
-    
-    self run: '  SortedSet asArray (ordered)      ' iterations: 100 block: [
-        immSortedSet asArray].
-
-	"Add: optimized building vs naive"
-    self run: '  SortedMap fromArray: (500)       ' iterations: 100 block: [
-        ImmutableSortedMap fromArray: ((1 to: 500) collect: [:i | i -> i])].
-    
-    self run: '  SortedSet fromArray: (500)       ' iterations: 100 block: [
-        ImmutableSortedSet fromArray: (1 to: 500) asArray].
-    
-    Transcript cr.
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runStructuralSharingBenchmarks [
-    | immMap largeDict immBranches dictCopies |
-    
-    Transcript show: '=== Structural Sharing Benchmarks ==='; cr.
-    
-    immMap := ImmutableMap empty.
-    1 to: 10000 do: [:i | immMap := immMap put: i value: i].
-    largeDict := Dictionary new.
-    1 to: 10000 do: [:i | largeDict at: i put: i].
-    
-    "Immutable: change one key, keep old version"
-    self run: '  ImmutableMap single update (10k)  ' iterations: 1000 block: [
-        | m2 |
-        m2 := immMap put: 5000 value: #changed.
-        m2 at: 5000].
-    
-    "Mutable: must copy entire dictionary first"
-    self run: '  Dictionary copy + update (10k)    ' iterations: 100 block: [
-        | d2 |
-        d2 := largeDict copy.
-        d2 at: 5000 put: #changed.
-        d2 at: 5000].
-    
-    Transcript cr.
-    
-    "Branching: create multiple versions"
-    self run: '  ImmutableMap 10 branches (10k)    ' iterations: 100 block: [
-        | branches |
-        branches := (1 to: 10) collect: [:i | immMap put: 5000 value: i]].
-    
-    self run: '  Dictionary 10 copies (10k)        ' iterations: 10 block: [
-        | copies |
-        copies := (1 to: 10) collect: [:i | | d |
-            d := largeDict copy.
-            d at: 5000 put: i.
-            d]].
-    
-    Transcript cr.
-    
-    "Memory: compare size of 10 branches"
-    immBranches := (1 to: 10) collect: [:i | immMap put: 5000 value: i].
-    dictCopies := (1 to: 10) collect: [:i | | d |
-        d := largeDict copy.
-        d at: 5000 put: i.
-        d].
-    
-    Transcript
-        show: '  ImmutableMap 10 branches size: ';
-        show: (immBranches inject: 0 into: [:sum :m | sum + m size]) printString;
-        cr.
-    Transcript
-        show: '  Dictionary 10 copies size:     ';
-        show: (dictCopies inject: 0 into: [:sum :d | sum + d size]) printString;
-        cr.
-]
-
-{ #category : 'running' }
-ImmutableBenchmarks class >> runVectorBenchmarks [
-    | smallVec smallArray largeVec largeArray |
-    
-    Transcript show: '=== Vector Benchmarks ==='; cr.
-    
-    smallVec := ImmutableVector fromArray: (1 to: 100) asArray.
-    smallArray := (1 to: 100) asArray.
-    largeVec := ImmutableVector fromArray: (1 to: 100000) asArray.
-    largeArray := (1 to: 100000) asArray.
-    
-    "Random access"
-    self compare: '  ImmutableVector at: (100)     ' block: [
-        1 to: 100 do: [:i | smallVec at: i - 1]]
-        with: '  Array at: (100)                ' block: [
-        1 to: 100 do: [:i | smallArray at: i]]
-        iterations: 10000.
-    
-    self compare: '  ImmutableVector at: (100k)    ' block: [
-        1 to: 1000 do: [:i | largeVec at: (i * 97) % 100000]]
-        with: '  Array at: (100k)               ' block: [
-        1 to: 1000 do: [:i | largeArray at: ((i * 97) % 100000) + 1]]
-        iterations: 1000.
-    
-    "Building"
-    self compare: '  ImmutableVector building (1000)' block: [
-        | v |
-        v := ImmutableVector empty.
-        1 to: 1000 do: [:i | v := v add: i]]
-        with: '  OrderedCollection building (1000)' block: [
-        | oc |
-        oc := OrderedCollection new.
-        1 to: 1000 do: [:i | oc add: i]]
-        iterations: 100.
-    
-    "Transient batch building"
-    self run: '  ImmutableVector transient (10k)  ' iterations: 10 block: [
-        | v t |
-        v := ImmutableVector empty.
-        t := ImmutableVectorTransient from: v.
-        1 to: 10000 do: [:i | t add: i].
-        v := t persistent].
-    
-    "Sequence operations"
-    self run: '  ImmutableVector take: 50 (100)   ' iterations: 10000 block: [
-        smallVec take: 50].
-    
-    self run: '  ImmutableVector drop: 50 (100)   ' iterations: 10000 block: [
-        smallVec drop: 50].
-    
-    Transcript cr.
-    
-    "Structural sharing: single append"
-    self run: '  ImmutableVector single append (100k)' iterations: 1000 block: [
-        largeVec add: 99999].
-    
-    self run: '  Array copy + add (100k)            ' iterations: 100 block: [
-        | a2 |
-        a2 := largeArray copy.
-        a2 := a2, #(99999)].
-    
-    Transcript cr.
 ]
