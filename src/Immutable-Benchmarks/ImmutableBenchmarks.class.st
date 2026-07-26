@@ -1,11 +1,20 @@
 "
-I provide benchmarks comparing Immutable collections against Pharo built-ins.
+I am the abstract SMark base for the Immutable collections benchmark suites.
 
-Run 'ImmutableBenchmarks runAll' to execute the full suite:
-  - Map/Vector/List/Set lookup, building, and structural sharing
-  - Sorted collection building and ordered access
-  - Queue operations
-  - Lazy vs memoized view performance
+Run the complete benchmark set with:
+
+    ImmutableBenchmarks runAll
+
+Run one family with:
+
+    ImmutableMapBenchmarks runAndReport
+
+Benchmarks use:
+	- SMarkCogRunner warmup behavior
+   - a microsecond-resolution timer expressed as fractional milliseconds
+   - nine recorded post-warmup samples
+   - median, range, relative spread, and operations per second
+   - correctness validation outside timed regions
 "
 Class {
 	#name : 'ImmutableBenchmarks',
