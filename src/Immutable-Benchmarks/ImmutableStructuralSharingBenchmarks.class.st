@@ -105,13 +105,13 @@ ImmutableStructuralSharingBenchmarks class >> mapUpdateRepetitions [
       ^ 1000000
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'defaults' }
 ImmutableStructuralSharingBenchmarks class >> queueBranchRepetitions [
 
       ^ 1000000
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'defaults' }
 ImmutableStructuralSharingBenchmarks class >> queueSize [
 
       ^ 100

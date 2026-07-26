@@ -1,14 +1,37 @@
 "
-I am an immutable persistent queue with O(1) amortized enqueue and dequeue.
+I am an immutable persistent FIFO queue implemented as a normalized batched two-list queue.
 
-Implemented using two lists: 'in' holds recently enqueued elements in reverse order,
-'out' holds elements ready for dequeue in correct order. When 'out' is empty and
-a dequeue is requested, 'in' is reversed into 'out'.
+I maintain two immutable lists:
 
-This classic two-stack queue (Okasaki 1995) is both simple and efficient, with
-structural sharing ensuring persistence.
+	- `out` contains elements ready to be read in FIFO order.
+   - `in` contains recently enqueued elements in reverse order.
 
-Inspired by Clojure's PersistentQueue and Okasaki's Purely Functional Data Structures.
+I maintain the invariant that `out` is nonempty whenever the queue is nonempty.
+The first element enqueued into an empty queue is therefore placed directly in
+`out`. Subsequent elements are prepended to `in`.
+
+When dequeue removes the last element from `out`, I reverse `in` and promote it
+to the new `out`. This strict rotation keeps peek O(1) for every nonempty queue,
+including a queue built entirely through enqueue operations.
+
+Operation complexity:
+
+   - enqueue: O(1)
+   - peek: O(1)
+   - dequeue: O(1) amortized along a linear sequence of queue versions
+   - enumeration: O(n)
+
+A rotation costs O(n). Because I am persistent, separate branches that dequeue
+from the same pre-rotation version can repeat that cost; the amortized dequeue
+bound therefore applies to linear use rather than arbitrary branching.
+
+`dequeue` answers `{element. newQueue}`, or nil when empty. `peek` answers the
+next element without changing the queue, or nil when empty. Every modifying
+operation returns a new queue and leaves previous versions unchanged.
+
+My representation is based on the batched functional queue described by Chris
+Okasaki in _Purely Functional Data Structures_ (Cambridge University Press,
+1998).
 "
 Class {
 	#name : 'ImmutableQueue',
@@ -62,13 +85,24 @@ ImmutableQueue >> add: anObject [
 
 { #category : 'actions' }
 ImmutableQueue >> dequeue [
-    "O(1) amortized. Returns array {element. newQueue} or nil if empty."
-    self isEmpty ifTrue: [^ nil].
-    out isEmpty ifTrue: [
-        | reversed |
-        reversed := in reverse.
-        ^ {reversed first. self class basicNew initializeWithIn: ImmutableList empty out: reversed rest}].
-    ^ {out first. self class basicNew initializeWithIn: in out: out rest}
+
+       | element nextIn nextOut |
+       self isEmpty ifTrue: [ ^ nil ].
+
+       element := out first.
+       nextIn := in.
+       nextOut := out rest.
+
+       nextOut isEmpty ifTrue: [
+           nextOut := in reverse.
+           nextIn := ImmutableList empty ].
+
+       ^ {
+           element.
+           self class basicNew
+               initializeWithIn: nextIn
+               out: nextOut
+       }
 ]
 
 { #category : 'enumerating' }
@@ -79,8 +113,15 @@ ImmutableQueue >> do: aBlock [
 
 { #category : 'actions' }
 ImmutableQueue >> enqueue: anObject [
-    "O(1) amortized"
-    ^ self class basicNew initializeWithIn: (in cons: anObject) out: out
+
+       out isEmpty ifTrue: [
+           ^ self class basicNew
+               initializeWithIn: in
+               out: (out cons: anObject) ].
+
+       ^ self class basicNew
+           initializeWithIn: (in cons: anObject)
+           out: out
 ]
 
 { #category : 'comparing' }
@@ -122,13 +163,9 @@ ImmutableQueue >> isImmutableQueue [
 
 { #category : 'accessing' }
 ImmutableQueue >> peek [
-    "O(1) amortized"
-    self isEmpty ifTrue: [^ nil].
-    out isEmpty ifTrue: [
-        | reversed |
-        reversed := in reverse.
-        ^ reversed first].
-    ^ out first
+
+       self isEmpty ifTrue: [ ^ nil ].
+       ^ out first
 ]
 
 { #category : 'printing' }

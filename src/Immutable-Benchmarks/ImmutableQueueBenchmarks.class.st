@@ -45,16 +45,16 @@ ImmutableQueueBenchmarks class >> benchmarkMetadata [
 			   'queue operations' }).
 
 		  (#ImmutableQueuePeekAfterEnqueues -> {
-			   self unrotatedPeekRepetitions.
+			   self peekRepetitions.
 			   'peeks' }).
 		  (#OrderedCollectionPeekAfterEnqueues -> {
-			   self unrotatedPeekRepetitions.
+			   self peekRepetitions.
 			   'peeks' }).
 		  (#ImmutableQueuePeekAfterDequeue -> {
-			   self readyPeekRepetitions.
+			   self peekRepetitions.
 			   'peeks' }).
 		  (#OrderedCollectionPeekAfterDequeue -> {
-			   self readyPeekRepetitions.
+			   self peekRepetitions.
 			   'peeks' }) } asDictionary
 ]
 
@@ -91,19 +91,7 @@ ImmutableQueueBenchmarks class >> mixedRepetitions [
 { #category : 'defaults' }
 ImmutableQueueBenchmarks class >> peekRepetitions [
 
-      ^ 20000
-]
-
-{ #category : 'defaults' }
-ImmutableQueueBenchmarks class >> readyPeekRepetitions [
-
-      ^ 60000000
-]
-
-{ #category : 'defaults' }
-ImmutableQueueBenchmarks class >> unrotatedPeekRepetitions [
-
-      ^ 20000
+	^ 60000000
 ]
 
 { #category : 'benchmarking' }
@@ -136,7 +124,7 @@ ImmutableQueueBenchmarks >> benchImmutableQueueMixed [
 { #category : 'benchmarking' }
 ImmutableQueueBenchmarks >> benchImmutableQueuePeekAfterDequeue [
 
-	self class readyPeekRepetitions timesRepeat: [ lastResult := readyQueue peek ].
+	self class peekRepetitions timesRepeat: [ lastResult := readyQueue peek ].
 
 	^ lastResult
 ]
@@ -144,7 +132,7 @@ ImmutableQueueBenchmarks >> benchImmutableQueuePeekAfterDequeue [
 { #category : 'benchmarking' }
 ImmutableQueueBenchmarks >> benchImmutableQueuePeekAfterEnqueues [
 
-	self class unrotatedPeekRepetitions timesRepeat: [ lastResult := baseQueue peek ].
+	self class peekRepetitions timesRepeat: [ lastResult := baseQueue peek ].
 
 	^ lastResult
 ]
@@ -179,7 +167,7 @@ ImmutableQueueBenchmarks >> benchOrderedCollectionMixed [
 { #category : 'benchmarking' }
 ImmutableQueueBenchmarks >> benchOrderedCollectionPeekAfterDequeue [
 
-	self class readyPeekRepetitions timesRepeat: [ lastResult := readyOrderedCollection first ].
+	self class peekRepetitions timesRepeat: [ lastResult := readyOrderedCollection first ].
 
 	^ lastResult
 ]
@@ -187,7 +175,7 @@ ImmutableQueueBenchmarks >> benchOrderedCollectionPeekAfterDequeue [
 { #category : 'benchmarking' }
 ImmutableQueueBenchmarks >> benchOrderedCollectionPeekAfterEnqueues [
 
-	self class unrotatedPeekRepetitions timesRepeat: [ lastResult := orderedCollection first ].
+	self class peekRepetitions timesRepeat: [ lastResult := orderedCollection first ].
 
 	^ lastResult
 ]

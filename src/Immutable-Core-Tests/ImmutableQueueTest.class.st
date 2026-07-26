@@ -103,6 +103,26 @@ ImmutableQueueTest >> testImmutability [
 ]
 
 { #category : 'tests' }
+ImmutableQueueTest >> testNonEmptyQueueAlwaysKeepsOutReady [
+
+       | queue result |
+       queue := ImmutableQueue empty.
+
+       1 to: 10 do: [ :each |
+           queue := queue enqueue: each ].
+
+       self deny: (queue instVarNamed: 'out') isEmpty.
+
+       1 to: 10 do: [ :expected |
+           result := queue dequeue.
+           self assert: result first equals: expected.
+           queue := result second.
+
+           queue isEmpty ifFalse: [
+               self deny: (queue instVarNamed: 'out') isEmpty ] ]
+]
+
+{ #category : 'tests' }
 ImmutableQueueTest >> testOriginalUnchangedAfterDequeue [
     | queue1 queue2 result |
     queue1 := ImmutableQueue empty.
