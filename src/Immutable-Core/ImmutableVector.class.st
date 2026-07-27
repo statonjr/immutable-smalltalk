@@ -239,51 +239,6 @@ ImmutableVector >> insertElement: element intoRoot: aRoot atIndex: index shift: 
     ^ newRoot
 ]
 
-{ #category : 'private' }
-ImmutableVector >> insertNode: node intoRoot: aRoot atIndex: index shift: currentShift [
-    | subIndex newNode resultRoot |
-    currentShift = 0 ifTrue: [^ node].
-    
-    subIndex := ((index >> currentShift) bitAnd: 31) + 1.
-    newNode := (aRoot at: subIndex ifAbsent: [nil]) 
-        ifNil: [Array new: 32] 
-        ifNotNil: [:n | n copy].
-    
-    newNode 
-        at: ((index >> (currentShift - 5)) bitAnd: 31) + 1
-        put: (self 
-            insertNode: node 
-            intoRoot: (aRoot at: subIndex ifAbsent: [Array new: 32])
-            atIndex: index 
-            shift: currentShift - 5).
-    
-    resultRoot := aRoot copy.
-    resultRoot at: subIndex put: newNode.
-    ^ resultRoot
-]
-
-{ #category : 'private' }
-ImmutableVector >> insertTail: aTail intoRoot: aRoot atNodeCount: nodeCount shift: currentShift levelIndex: level [
-    | subIndex newNode resultRoot |
-    currentShift = 0 ifTrue: [^ aTail].
-    
-    subIndex := ((nodeCount >> currentShift) bitAnd: 31) + 1.
-    newNode := (aRoot at: subIndex ifAbsent: nil) ifNil: [Array new: 32] ifNotNil: [:n | n copy].
-    
-    newNode 
-        at: ((nodeCount >> (currentShift - 5)) bitAnd: 31) + 1
-        put: (self 
-            insertTail: aTail 
-            intoRoot: (aRoot at: subIndex ifAbsent: [Array new: 32])
-            atNodeCount: nodeCount 
-            shift: currentShift - 5 
-            levelIndex: level + 1).
-
-    resultRoot := aRoot copy.
-    resultRoot at: subIndex put: newNode.
-    ^ resultRoot
-]
-
 { #category : 'accessing' }
 ImmutableVector >> isEmpty [
     ^ size = 0
@@ -329,21 +284,6 @@ ImmutableVector >> promoteTail: aTail intoRoot: aRoot shift: aShift [
                        shift: aShift ].
 
       ^ newRoot
-]
-
-{ #category : 'actions' }
-ImmutableVector >> promoteTail: aTail toRoot: aRoot [
-    | levelIndex nodeCount newRoot |
-    nodeCount := size >> 5.
-    levelIndex := 0.
-    
-    "Walk down tree to find insertion point"
-    ^ self 
-        insertTail: aTail 
-        intoRoot: aRoot 
-        atNodeCount: nodeCount 
-        shift: shift 
-        levelIndex: 0
 ]
 
 { #category : 'enumerating' }
