@@ -14,9 +14,6 @@ Class {
 		'root',
 		'tail'
 	],
-	#classVars : [
-		'EmptyVector'
-	],
 	#category : 'Immutable-Core',
 	#package : 'Immutable-Core'
 }
