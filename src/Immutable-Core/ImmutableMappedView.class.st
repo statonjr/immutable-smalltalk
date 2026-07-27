@@ -21,7 +21,7 @@ Class {
 	#package : 'Immutable-Core'
 }
 
-{ #category : 'as yet unclassified' }
+{ #category : 'instance creation' }
 ImmutableMappedView class >> on: aSequence transform: aBlock [
     ^ self basicNew initializeWithSource: aSequence transform: aBlock
 ]

@@ -15,9 +15,7 @@ Class {
 	#traits : 'TImmutableLazySequence + TImmutableAddable + (TImmutableEnumerable - {#select:. #collect:. #reject:})',
 	#classTraits : 'TImmutableLazySequence classTrait + TImmutableAddable classTrait + TImmutableEnumerable classTrait',
 	#instVars : [
-		'source',
-		'cache',
-		'realized'
+		'cache'
 	],
 	#category : 'Immutable-Core',
 	#package : 'Immutable-Core'
@@ -38,84 +36,64 @@ ImmutableMemoizedView class >> onCache: aList [
 
 { #category : 'adding' }
 ImmutableMemoizedView >> add: anObject [
-    self realizeIfNeeded.
-    ^ cache add: anObject
+
+	^ cache add: anObject
 ]
 
 { #category : 'converting' }
 ImmutableMemoizedView >> asImmutableVector [
-    self realizeIfNeeded.
-    ^ cache asImmutableVector
+
+	^ cache asImmutableVector
 ]
 
 { #category : 'adding' }
 ImmutableMemoizedView >> cons: anObject [
-    self realizeIfNeeded.
-    ^ cache cons: anObject
+
+	^ cache cons: anObject
 ]
 
 { #category : 'enumerating' }
 ImmutableMemoizedView >> do: aBlock [
-    self realizeIfNeeded.
-    cache do: aBlock
+
+	cache do: aBlock
 ]
 
 { #category : 'accessing' }
 ImmutableMemoizedView >> drop: n [
-    self realizeIfNeeded.
-    ^ cache drop: n
+
+	^ cache drop: n
 ]
 
 { #category : 'accessing' }
 ImmutableMemoizedView >> first [
-    self realizeIfNeeded.
-    ^ cache first
+
+	^ cache first
 ]
 
 { #category : 'initialization' }
 ImmutableMemoizedView >> initializeWithCache: aList [
-    cache := aList.
-    realized := true.
-    source := nil.
-    self makeImmutable
-]
 
-{ #category : 'initialization' }
-ImmutableMemoizedView >> initializeWithSource: aSequence [
-    source := aSequence.
-    cache := ImmutableList empty.
-    realized := false.
-    self makeImmutable
+       cache := aList.
+       self makeImmutable
 ]
 
 { #category : 'testing' }
 ImmutableMemoizedView >> isEmpty [
-    self realizeIfNeeded.
-    ^ cache isEmpty
-]
 
-{ #category : 'accessing' }
-ImmutableMemoizedView >> realizeIfNeeded [
-	 | result |
-    realized ifTrue: [^ self].
-    result := ImmutableList empty.
-    source do: [:each | result := result cons: each].
-    cache := result reverse.
-    source := nil.  "Release source, cache holds everything"
-    realized := true
+	^ cache isEmpty
 ]
 
 { #category : 'accessing' }
 ImmutableMemoizedView >> rest [
-    self realizeIfNeeded.
-    cache rest isEmpty ifTrue: [^ ImmutableVector empty].
-    ^ ImmutableMemoizedView onCache: cache rest
+
+	cache rest isEmpty ifTrue: [ ^ ImmutableVector empty ].
+	^ ImmutableMemoizedView onCache: cache rest
 ]
 
 { #category : 'accessing' }
 ImmutableMemoizedView >> size [
-    self realizeIfNeeded.
-    ^ cache size
+
+	^ cache size
 ]
 
 { #category : 'private' }
@@ -125,6 +103,6 @@ ImmutableMemoizedView >> species [
 
 { #category : 'accessing' }
 ImmutableMemoizedView >> take: n [
-    self realizeIfNeeded.
-    ^ cache take: n
+
+	^ cache take: n
 ]
