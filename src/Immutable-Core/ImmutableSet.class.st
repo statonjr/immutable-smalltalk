@@ -49,12 +49,12 @@ ImmutableSet >> = anObject [
 	^ self allSatisfy: [ :each | anObject includes: each ]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableSet >> add: anObject [
     ^ self class basicNew initializeWithMap: (map put: anObject value: true)
 ]
 
-{ #category : 'initialization' }
+{ #category : 'transforming' }
 ImmutableSet >> asArray [
     | result |
     result := OrderedCollection new.
@@ -62,12 +62,12 @@ ImmutableSet >> asArray [
     ^ result asArray
 ]
 
-{ #category : 'initialization' }
+{ #category : 'operations' }
 ImmutableSet >> difference: otherSet [
     ^ self reject: [:each | otherSet includes: each]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableSet >> do: aBlock [
     map keysAndValuesDo: [:key :value | aBlock value: key]
 
@@ -85,7 +85,7 @@ ImmutableSet >> hash [
       ^ result
 ]
 
-{ #category : 'initialization' }
+{ #category : 'testing' }
 ImmutableSet >> includes: anObject [
     ^ map includesKey: anObject
 ]
@@ -102,12 +102,12 @@ ImmutableSet >> initializeWithMap: aMap [
     self makeImmutable
 ]
 
-{ #category : 'initialization' }
+{ #category : 'operations' }
 ImmutableSet >> intersection: otherSet [
     ^ self select: [:each | otherSet includes: each]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'testing' }
 ImmutableSet >> isEmpty [
     ^ map isEmpty
 ]
@@ -129,19 +129,19 @@ ImmutableSet >> printOn: aStream [
     aStream nextPut: $}
 ]
 
-{ #category : 'initialization' }
+{ #category : 'removing' }
 ImmutableSet >> remove: anObject [
     (map includesKey: anObject) ifFalse: [^ self].
     ^ self class basicNew initializeWithMap: (map removeKey: anObject)
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableSet >> size [
     ^ map size
 
 ]
 
-{ #category : 'initialization' }
+{ #category : 'operations' }
 ImmutableSet >> union: otherSet [
     | result |
     result := self.

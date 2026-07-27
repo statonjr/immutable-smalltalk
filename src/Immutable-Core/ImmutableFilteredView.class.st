@@ -28,12 +28,12 @@ ImmutableFilteredView class >> on: aSequence predicate: aBlock [
 
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableFilteredView >> add: anObject [
     ^ self asImmutableVector add: anObject
 ]
 
-{ #category : 'initialization' }
+{ #category : 'transforming' }
 ImmutableFilteredView >> asImmutableVector [
     | t |
     t := ImmutableVectorTransient from: ImmutableVector empty.
@@ -41,17 +41,17 @@ ImmutableFilteredView >> asImmutableVector [
     ^ t persistent
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableFilteredView >> cons: anObject [
     ^ self asImmutableVector cons: anObject
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableFilteredView >> do: aBlock [
     source do: [:each | (predicate value: each) ifTrue: [aBlock value: each]]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableFilteredView >> drop: n [
     | count current |
     count := 0.
@@ -62,7 +62,7 @@ ImmutableFilteredView >> drop: n [
     ^ ImmutableFilteredView on: current predicate: predicate
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableFilteredView >> first [
     source do: [:each | (predicate value: each) ifTrue: [^ each]].
     ^ nil
@@ -75,13 +75,13 @@ ImmutableFilteredView >> initializeWithSource: aSequence predicate: aBlock [
     self makeImmutable
 ]
 
-{ #category : 'initialization' }
+{ #category : 'testing' }
 ImmutableFilteredView >> isEmpty [
 
 	^ source noneSatisfy: [ :each | predicate value: each ]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableFilteredView >> rest [
     | skipped |
     skipped := source.
@@ -91,12 +91,12 @@ ImmutableFilteredView >> rest [
     ^ ImmutableFilteredView on: skipped rest predicate: predicate
 ]
 
-{ #category : 'initialization' }
+{ #category : 'private' }
 ImmutableFilteredView >> species [
     ^ ImmutableVector
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableFilteredView >> take: n [
     | result count |
     result := ImmutableVectorTransient from: ImmutableVector empty.

@@ -48,7 +48,7 @@ ImmutableMemoizedView >> asImmutableVector [
     ^ cache asImmutableVector
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableMemoizedView >> cons: anObject [
     self realizeIfNeeded.
     ^ cache cons: anObject

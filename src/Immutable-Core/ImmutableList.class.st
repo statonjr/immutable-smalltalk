@@ -113,7 +113,7 @@ ImmutableList >> at: index ifAbsent: absentBlock [
       ^ current first
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableList >> car [
     self isEmpty ifTrue: [^ nil].
     ^ head
@@ -131,7 +131,7 @@ ImmutableList >> collect: aBlock [
       ^ result reverse
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableList >> cons: anObject [
     ^ self class basicNew initializeWithHead: anObject tail: self
 ]
@@ -145,7 +145,7 @@ ImmutableList >> do: aBlock [
         current := current rest]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableList >> first [
     self isEmpty ifTrue: [^ nil].
     ^ head

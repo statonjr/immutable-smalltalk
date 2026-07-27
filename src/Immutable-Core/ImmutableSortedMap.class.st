@@ -206,7 +206,7 @@ ImmutableSortedMap >> printOn: aStream [
     aStream nextPut: $}
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableSortedMap >> put: key value: value [
     | newMap newKeys |
     newMap := map put: key value: value.

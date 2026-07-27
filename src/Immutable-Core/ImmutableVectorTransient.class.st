@@ -26,7 +26,7 @@ ImmutableVectorTransient class >> from: anImmutableVector [
     ^ self basicNew initializeFrom: anImmutableVector
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableVectorTransient >> add: anObject [
 
       tail ifNil: [
@@ -52,7 +52,7 @@ ImmutableVectorTransient >> initializeFrom: aVector [
     tail := (aVector instVarNamed: 'tail') copy
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableVectorTransient >> insertTail: aTail intoRoot: aRoot atIndex: index shift: currentShift [
 		| subIndex newRoot child newChild |
       subIndex := ((index >> currentShift) bitAnd: 31) + 1.
@@ -80,7 +80,7 @@ ImmutableVectorTransient >> insertTail: aTail intoRoot: aRoot atIndex: index shi
       ^ newRoot
 ]
 
-{ #category : 'initialization' }
+{ #category : 'transforming' }
 ImmutableVectorTransient >> persistent [
     | result |
     result := ImmutableVector basicNew
@@ -95,7 +95,7 @@ ImmutableVectorTransient >> persistent [
     ^ result
 ]
 
-{ #category : 'initialization' }
+{ #category : 'actions' }
 ImmutableVectorTransient >> promoteTailIntoRoot [
 		| newRoot tailStart |
       newRoot := root.

@@ -68,17 +68,17 @@ ImmutableMap >> = anObject [
       ^ true
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableMap >> add: anAssociation [
     ^ self put: anAssociation key value: anAssociation value
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableMap >> at: key [
     ^ self at: key ifAbsent: [self error: 'Key not found: ', key printString]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableMap >> at: key ifAbsent: aBlock [
     | hash result |
     hash := key hash.
@@ -87,12 +87,12 @@ ImmutableMap >> at: key ifAbsent: aBlock [
     ^ result ifNil: [aBlock value] ifNotNil: [:node | node value]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableMap >> at: key put: value [
     ^ self put: key value: value
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableMap >> collect: aBlock [
     | result |
     result := self class empty.
@@ -100,12 +100,12 @@ ImmutableMap >> collect: aBlock [
     ^ result
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableMap >> do: aBlock [
     root ifNotNil: [root do: aBlock]
 ]
 
-{ #category : 'requirements' }
+{ #category : 'initialization' }
 ImmutableMap >> fromAssociations: aCollection [
     | map |
     map := self empty.
@@ -126,7 +126,7 @@ ImmutableMap >> hash [
       ^ result
 ]
 
-{ #category : 'initialization' }
+{ #category : 'testing' }
 ImmutableMap >> includesKey: key [
     | hash |
     root ifNil: [^ false].
@@ -148,7 +148,7 @@ ImmutableMap >> initializeWithSize: aSize root: aRoot [
     self makeImmutable
 ]
 
-{ #category : 'initialization' }
+{ #category : 'testing' }
 ImmutableMap >> isEmpty [
     ^ size = 0
 ]
@@ -159,7 +159,7 @@ ImmutableMap >> isImmutableMap [
 	^ true.
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableMap >> keys [
 
     	| keys |
@@ -171,12 +171,12 @@ ImmutableMap >> keys [
       ^ keys asArray
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableMap >> keysAndValuesDo: aBlock [
     root ifNotNil: [root keysAndValuesDo: aBlock]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'transforming' }
 ImmutableMap >> merge: otherMap [
     | result |
     result := self.
@@ -197,7 +197,7 @@ ImmutableMap >> printOn: aStream [
     aStream nextPut: $}
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableMap >> put: key value: value [
     | hash newRoot added |
     hash := key hash.
@@ -213,7 +213,7 @@ ImmutableMap >> put: key value: value [
         root: newRoot
 ]
 
-{ #category : 'initialization' }
+{ #category : 'removing' }
 ImmutableMap >> removeKey: key [
 		| hash newRoot |
       root ifNil: [ ^ self ].
@@ -235,7 +235,7 @@ ImmutableMap >> removeKey: key [
            root: newRoot
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableMap >> select: aBlock [
     | result |
     result := self class empty.
@@ -244,12 +244,12 @@ ImmutableMap >> select: aBlock [
     ^ result
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableMap >> size [
     ^ size
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 ImmutableMap >> values [
 
 		| values |

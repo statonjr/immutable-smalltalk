@@ -146,7 +146,7 @@ ImmutableVector >> branchingFactor [
     ^ 32
 ]
 
-{ #category : 'initialization' }
+{ #category : 'adding' }
 ImmutableVector >> cons: anObject [
     "Prepend — O(n) for vectors, use add: for O(1) append"
     | result |
@@ -165,7 +165,7 @@ ImmutableVector >> copyFrom: startIndex to: endIndex [
     ^ result
 ]
 
-{ #category : 'initialization' }
+{ #category : 'enumerating' }
 ImmutableVector >> do: aBlock [
     0 to: size - 1 do: [:i | aBlock value: (self at: i)]
 ]
@@ -331,7 +331,7 @@ ImmutableVector >> promoteTail: aTail intoRoot: aRoot shift: aShift [
       ^ newRoot
 ]
 
-{ #category : 'initialization' }
+{ #category : 'actions' }
 ImmutableVector >> promoteTail: aTail toRoot: aRoot [
     | levelIndex nodeCount newRoot |
     nodeCount := size >> 5.
